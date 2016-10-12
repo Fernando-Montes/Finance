@@ -23,7 +23,7 @@ The model is built using with the financial information available until June 30,
     FinStock <- getFinancials(stock, auto.assign = FALSE)
 ```
 
-All the stocks available in yahoo finance are tentatively used in the model preparation and prediction. The implementation of which information is available online is based on <https://github.com/mkfs> and from functions written by me. 
+All the stocks available in yahoo finance are tentatively used in the model preparation and prediction. The implementation of which information is available online is based on <https://github.com/mkfs> and from functions written by [me](https://github.com/Fernando-Montes/Finance). 
 
 There are 2755 companies that have all the information required in the model. 
 
