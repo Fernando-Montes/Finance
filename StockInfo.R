@@ -8,8 +8,8 @@
 # -----
 # stock symbol
 # current stock price
-# lowest stock price from end.date.model-months.min to end.date.model 
-# highest stock price from end.date.model-months.min to end.date.model
+# lowest stock price from ini.date.model to end.date.model
+# highest stock price from ini.date.model to end.date.model
 # stock price at end.date.model
 # stock price category at end.date.model
 # Total assets at end.date.model 
@@ -21,128 +21,164 @@
 # price/(equity/debt) at end.date.model
 # prediction for current stock price
 # lower bound prediction for current stock price
+# Simple moving 200-day-average of the stock price
+# Simple moving 50-day-average of the stock price
+# Relative Strength Index over the last 10 days 
+# Relative Strength Index over the last 50 days 
+# DVO indicator 
 # industry stock belongs to
 
-add.stock.to.table <- function(stock, end.date.model, months.min) {
+add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date.model) {
   
-  targetPath <- "~/Dropbox/Courses/R/Finance/Downloads/"
+  targetPath1 <- "~/Dropbox/Courses/R/Finance/Downloads/"
+  targetPath2 <- "~/Dropbox/Courses/R/Finance/Downloads2/"
   
   # Loading historical stock price data into SYMB_prices
-  fileName <- paste(targetPath, stock, "-prices.RData", sep="")
+  fileName <- paste(targetPath2, stock, "-prices.RData", sep="")
   load(file = fileName)
   
   # Loading stock financial info into FinStock
-  fileName <- paste(targetPath, stock, "-FinStock.RData", sep="")
+  fileName <- paste(targetPath1, stock, "-FinStock.RData", sep="")
   load(file = fileName)
   
-  # Checking that there is enough stock price historical information
-  if (length(SYMB_prices)-length(seq(to=Sys.Date(), from=end.date.model, by='month')) - months.min + 1 > 1) {
-    
-    # Income statement
-    FinIS <- viewFin(FinStock, period = 'Q', "IS")
-    # Balance sheet
-    FinBS <- viewFin(FinStock, period = 'Q', "BS")
-    # Cash flow
-    FinCF <- viewFin(FinStock, period = 'Q', "CF")
-    
-    # Finding if stock info at end.date.model (year and month) exists
-    numCol <- return.numCol(FinIS, FinBS, end.date.model)
-    numIS <- numCol[[1]]
-    numBS <- numCol[[2]]
-    
-    # Checking that there is enough historical information at time end.date.model
-    if ( numIS != 0 & numBS != 0) {
+  # Checking the dates are right and they exist
+  if ( length(SYMB_prices[end.date.model,])==1 & length(SYMB_prices[ini.date.model,])==1
+       & length(SYMB_prices[apply.date.model,])==1 ) {
       
-      # Stock price at end.date.model --- taking to be the first day of the next month
-      price <- SYMB_prices[length(SYMB_prices)-length(seq(to=Sys.Date(), from=end.date.model, by='month'))+2]
-      # Number of outstanding shares at time end.date.model
-      number.shares <- ifelse(is.na(FinBS["Total Common Shares Outstanding",numBS]),0,FinBS["Total Common Shares Outstanding",numBS])
-      if (number.shares == 0 ) { 
-        print(paste(stock," does not have Common Shares Outstanding information"))
-        return(NA) 
+      # Income statement
+      FinIS <- viewFin(FinStock, period = 'Q', "IS")
+      # Balance sheet
+      FinBS <- viewFin(FinStock, period = 'Q', "BS")
+      # Cash flow
+      FinCF <- viewFin(FinStock, period = 'Q', "CF")
+      
+      # Finding if stock info at end.date.model (year and month) exists
+      numCol <- return.numCol(FinIS, FinBS, end.date.model)
+      numIS <- numCol[[1]]
+      numBS <- numCol[[2]]
+      
+      # Checking that there is enough historical information at time end.date.model
+      if ( numIS != 0 & numBS != 0) {
+        
+        # Stock price at end.date.model 
+        price <- as.numeric(SYMB_prices[index(SYMB_prices[end.date.model,]),1])
+        # Number of outstanding shares at time end.date.model
+        number.shares <- ifelse(is.na(FinBS["Total Common Shares Outstanding",numBS]),0,FinBS["Total Common Shares Outstanding",numBS])
+        if (number.shares == 0 ) { 
+          print(paste(stock," does not have Common Shares Outstanding information"))
+          return(NA) 
+        }
+        # Enterprise value
+        ev <- price*number.shares 
+        # EBITDA = (net income FinIS + interest income FinIS + income before tax FinIS - income after tax FinIS 
+        #           + depreciation/amortization FinIS + unusual expense FinIS)
+        ebitda <- ifelse(is.na(FinIS["Net Income",numIS]),0,FinIS["Net Income",numIS]) +
+          ifelse(is.na(FinIS["Interest Income(Expense), Net Non-Operating",numIS]),0,FinIS["Interest Income(Expense), Net Non-Operating",numIS])+
+          ifelse(is.na(FinIS["Income Before Tax",numIS]),0,FinIS["Income Before Tax",numIS])-
+          ifelse(is.na(FinIS["Income After Tax",numIS]),0,FinIS["Income After Tax",numIS])+
+          ifelse(is.na(FinIS["Depreciation/Amortization",numIS]),0,FinIS["Depreciation/Amortization",numIS])+
+          ifelse(is.na(FinIS["Unusual Expense (Income)",numIS]),0,FinIS["Unusual Expense (Income)",numIS])
+        
+        # The following information is at end.date.model ---------
+        # lowest stock price from end.date.model-months.min to end.date.model 
+        Price.Min <- min( SYMB_prices[ which(index(SYMB_prices) == index(SYMB_prices[ini.date.model,])):
+                                       which(index(SYMB_prices) == index(SYMB_prices[end.date.model,])) ] )  
+        # highest stock price from end.date.model-months.min to end.date.model
+        Price.Max <- max( SYMB_prices[ which(index(SYMB_prices) == index(SYMB_prices[ini.date.model,])):
+                                       which(index(SYMB_prices) == index(SYMB_prices[end.date.model,])) ] )    
+        # stock price category at end.date.model
+        Price.Category <- ifelse(price<1., "1", ifelse(price<10., "2", ifelse(price<100., "3", "4")))
+        # Total assets at end.date.model 
+        Assets <- FinBS["Total Assets",numBS]
+        # Ev/earning = price/diluted normalized EPS (FinIS) 
+        Ev.earning <- ifelse(FinIS["Diluted Normalized EPS",numIS] != 0, price/FinIS["Diluted Normalized EPS",numIS], NA)
+        # Ev/ebitda = EV/(net income FinIS + interest income FinIS + income before tax FinIS - income after tax FinIS 
+        #                + depreciation/amortization FinIS + unusual expense FinIS)
+        Ev.ebitda <- ifelse(ebitda != 0, ev/ebitda, NA)
+        # Ev/book = EV/total equity (FinBS) 
+        Ev.book <- ifelse(FinBS["Total Equity",numBS] != 0, ev/FinBS["Total Equity",numBS], NA)
+        # Ev/revenue = EV/Total Revenue (FinIS) 
+        Ev.revenue <- ifelse(FinIS["Total Revenue",numIS] != 0, ev/FinIS["Total Revenue",numIS], NA)
+        # Ev/cash = EV/Cash and Short Term Investments (FinBS) 
+        Ev.cash <- ifelse(FinBS["Cash and Short Term Investments",numBS] != 0, ev/FinBS["Cash and Short Term Investments",numBS], NA)
+        # Price.equity.debt = price/Total Equity (FinBS)/Total Debt (Fin BS)
+        Price.equity.debt <- ifelse(FinBS["Total Debt",numBS] != 0 & FinBS["Total Equity",numBS] != 0, 
+                                    price*FinBS["Total Debt",numBS]/FinBS["Total Equity",numBS], NA)
+        # prediction for current stock price and lower bound prediction for current stock price
+        prediction.forecast <- Forecasting.ts(SYMB_prices, end.date.model, apply.date.model)
+        # Holt-Winters prediction for current stock price
+        Price.Prediction.hw <- prediction.forecast[[1]]
+        # Holt-Winters prediction for lower bound prediction for current stock price
+        Price.Prediction.hwLB <- prediction.forecast[[2]]
+        # Arima prediction for current stock price
+        Price.Prediction.arima <- prediction.forecast[[3]]
+        
+        #plot(SYMB_prices)
+        # Add a 200-day moving average using the lines command
+        # lines(SMA(SYMB_prices, n = 200), col = "red")
+        # Simple moving 200-day-average of the stock price
+        sma.200 <- SMA(SYMB_prices, n = 200)[end.date.model]
+        # Simple moving 50-day-average of the stock price
+        sma.50 <- SMA(SYMB_prices, n = 50)[end.date.model]
+        # Relative Strength Index over the last 10 days 
+        rsi.10 <- RSI(SYMB_prices, n = 10)[end.date.model]
+        # Relative Strength Index over the last 50 days 
+        rsi.50 <- RSI(SYMB_prices, n = 50)[end.date.model]
+        
+        # DVO indicator 
+        SYMB_prices_red <- SYMB_prices[ which(index(SYMB_prices) == index(SYMB_prices[ini.date.model,])):
+                                        which(index(SYMB_prices) == index(SYMB_prices[end.date.model,])) ]
+        dvo <- runPercentRank(SYMB_prices_red, n = length(SYMB_prices_red), exact.multiplier = 1)[end.date.model] * 100
+        
+        return( list(stock,                            # stock symbol
+                     SYMB_prices[apply.date.model,1],  # current stock price
+                     Price.Min,                        # lowest stock price from end.date.model-months.min to end.date.model 
+                     Price.Max,                        # highest stock price from end.date.model-months.min to end.date.model
+                     price,                            # stock price at end.date.model
+                     Price.Category,                   # stock price category at end.date.model
+                     Assets,                           # Total assets at end.date.model 
+                     Ev.earning,                       # EV/earnings at end.date.model
+                     Ev.ebitda,                        # EV/EBITDA at end.date.model
+                     Ev.book,                          # EV/book value at end.date.model
+                     Ev.revenue,                       # EV/revenue at end.date.model
+                     Ev.cash,                          # EV/total cash at end.date.model
+                     Price.equity.debt,                # price/(debt/equity) at end.date.model
+                     Price.Prediction.hw,              # Holt-Winters prediction for current stock price
+                     Price.Prediction.hwLB,            # Holt-Winters prediction for lower bound prediction for current stock price
+                     Price.Prediction.arima,           # Arima prediction for current stock price
+                     sma.200,                          # Simple moving 200-day-average of the stock price
+                     sma.50,                           # Simple moving 50-day-average of the stock price
+                     rsi.10,                           # Relative Strength Index over the last 10 days 
+                     rsi.50,                           # Relative Strength Index over the last 50 days 
+                     dvo,                              # DVO indicator  
+                     "temp"                            # Place-holder for industry stock belongs to
+        )
+        )
+      } else {
+        print(paste(stock," does not have enough historical information at time end.date.model"))
+        return(NA)
       }
-      # Enterprise value
-      ev <- price*number.shares 
-      # EBITDA = (net income FinIS + interest income FinIS + income before tax FinIS - income after tax FinIS 
-      #           + depreciation/amortization FinIS + unusual expense FinIS)
-      ebitda <- ifelse(is.na(FinIS["Net Income",numIS]),0,FinIS["Net Income",numIS]) +
-        ifelse(is.na(FinIS["Interest Income(Expense), Net Non-Operating",numIS]),0,FinIS["Interest Income(Expense), Net Non-Operating",numIS])+
-        ifelse(is.na(FinIS["Income Before Tax",numIS]),0,FinIS["Income Before Tax",numIS])-
-        ifelse(is.na(FinIS["Income After Tax",numIS]),0,FinIS["Income After Tax",numIS])+
-        ifelse(is.na(FinIS["Depreciation/Amortization",numIS]),0,FinIS["Depreciation/Amortization",numIS])+
-        ifelse(is.na(FinIS["Unusual Expense (Income)",numIS]),0,FinIS["Unusual Expense (Income)",numIS])
-      
-      # The following information is at end.date.model ---------
-      # lowest stock price from end.date.model-months.min to end.date.model 
-      Price.Min <- min(SYMB_prices[(length(SYMB_prices)-length(seq(to=Sys.Date(), from=end.date.model, by='month'))+1 - months.min):
-                                   (length(SYMB_prices)-length(seq(to=Sys.Date(), from=end.date.model, by='month'))+2)])  
-      # highest stock price from end.date.model-months.min to end.date.model
-      Price.Max <- max(SYMB_prices[(length(SYMB_prices)-length(seq(to=Sys.Date(), from=end.date.model, by='month'))+1 - months.min):
-                                   (length(SYMB_prices)-length(seq(to=Sys.Date(), from=end.date.model, by='month'))+2)])  
-      # stock price category at end.date.model
-      Price.Category <- ifelse(price<1., "1", ifelse(price<10., "2", ifelse(price<100., "3", "4")))
-      # Total assets at end.date.model 
-      Assets <- FinBS["Total Assets",numBS]
-      # Ev/earning = price/diluted normalized EPS (FinIS) 
-      Ev.earning <- ifelse(FinIS["Diluted Normalized EPS",numIS] != 0, price/FinIS["Diluted Normalized EPS",numIS], NA)
-      # Ev/ebitda = EV/(net income FinIS + interest income FinIS + income before tax FinIS - income after tax FinIS 
-      #                + depreciation/amortization FinIS + unusual expense FinIS)
-      Ev.ebitda <- ifelse(ebitda != 0, ev/ebitda, NA)
-      # Ev/book = EV/total equity (FinBS) 
-      Ev.book <- ifelse(FinBS["Total Equity",numBS] != 0, ev/FinBS["Total Equity",numBS], NA)
-      # Ev/revenue = EV/Total Revenue (FinIS) 
-      Ev.revenue <- ifelse(FinIS["Total Revenue",numIS] != 0, ev/FinIS["Total Revenue",numIS], NA)
-      # Ev/cash = EV/Cash and Short Term Investments (FinBS) 
-      Ev.cash <- ifelse(FinBS["Cash and Short Term Investments",numBS] != 0, ev/FinBS["Cash and Short Term Investments",numBS], NA)
-      # Price.equity.debt = price/Total Equity (FinBS)/Total Debt (Fin BS)
-      Price.equity.debt <- ifelse(FinBS["Total Debt",numBS] != 0 & FinBS["Total Equity",numBS] != 0, 
-                                  price*FinBS["Total Debt",numBS]/FinBS["Total Equity",numBS], NA)
-      # prediction for current stock price and lower bound prediction for current stock price
-      HoltWinters <- Prediction.HoltWinters(SYMB_prices, 
-                             c(as.numeric(format(end.date.model, format = "%Y")), as.numeric(format(end.date.model, format = "%m"))), 
-                             length(seq(to=Sys.Date(), from=end.date.model, by='month')))
-      # prediction for current stock price
-      Price.Prediction <- HoltWinters[[1]]
-      # prediction for lower bound prediction for current stock price
-      Price.Prediction.LB <- HoltWinters[[2]]
-  
-      return( list(stock,                            # stock symbol
-                   SYMB_prices[length(SYMB_prices)], # current stock price
-                   Price.Min,                        # lowest stock price from end.date.model-months.min to end.date.model 
-                   Price.Max,                        # highest stock price from end.date.model-months.min to end.date.model
-                   price,                            # stock price at end.date.model
-                   Price.Category,                   # stock price category at end.date.model
-                   Assets,                           # Total assets at end.date.model 
-                   Ev.earning,                       # EV/earnings at end.date.model
-                   Ev.ebitda,                        # EV/EBITDA at end.date.model
-                   Ev.book,                          # EV/book value at end.date.model
-                   Ev.revenue,                       # EV/revenue at end.date.model
-                   Ev.cash,                          # EV/total cash at end.date.model
-                   Price.equity.debt,                # price/(debt/equity) at end.date.model
-                   Price.Prediction,                 # prediction for current stock price
-                   Price.Prediction.LB,              # prediction for lower bound prediction for current stock price
-                   "temp"                            #Place-holder for industry stock belongs to
-                  )
-      )
-    } else {
-      print(paste(stock," does not have enough historical information at time end.date.model"))
-      return(NA)
-    }
   } else {
     print(paste(stock," does not have enough stock price historical information"))
-    return(NA)
+    return(NA) 
   }
 
 }
 
 # Returns stock price prediction and a lower bound price using a Holt-Winters model 
 # after a number of months
-Prediction.HoltWinters <- function(SYMB_prices, end.date.model, months.ahead) {
-  # Find the start of the quoted prices
-  start <- c(as.numeric(format(index(SYMB_prices)[1], format = "%Y", tz = "", usetz = FALSE)),
-             as.numeric(format(index(SYMB_prices)[1], format = "%m", tz = "", usetz = FALSE)))
+Forecasting.ts <- function(SYMB_prices, end.date.model, apply.date.model) {
   
-  SYMB.ts <- ts(SYMB_prices, start = start, end = end.date.model, freq=12)
+  # Converting to monthly data
+  SYMB_prices.mon <- daily2endMonth(SYMB_prices)
+  # Find the start of the quoted prices
+  start <- c(as.numeric(format(SYMB_prices.mon[1,1], format = "%Y", tz = "", usetz = FALSE)),
+             as.numeric(format(SYMB_prices.mon[1,1], format = "%m", tz = "", usetz = FALSE)))
+  # Find the end of the quoted prices
+  end <- c(as.numeric(format(end.date.model, format = "%Y", tz = "", usetz = FALSE)),
+           as.numeric(format(end.date.model, format = "%m", tz = "", usetz = FALSE)))
+  SYMB.ts <- ts(SYMB_prices.mon$AdjCl, start = start, end = end, frequency = 12)
+  
   # Do the Holt-Winters model with mult season option if it can
   SYMB.hw <- if (class(try(HoltWinters(SYMB.ts, seasonal = "mult"), silent = TRUE)) != "try-error") {
     HoltWinters(SYMB.ts, seasonal = "mult")
@@ -151,15 +187,21 @@ Prediction.HoltWinters <- function(SYMB_prices, end.date.model, months.ahead) {
   } else {
     return(c(NA,NA))
   }
-  SYMB.predict <- predict(SYMB.hw, n.ahead = months.ahead, level = 0.9, prediction.interval = TRUE)
+  
+  # Number of time steps ahead for prediction
+  n.ahead <- (length(seq(from=end.date.model, to=apply.date.model, by='month'))-1)
+  # Holt-Winters prediction
+  SYMB.pred.HoWin <- forecast(SYMB.hw, h=n.ahead, level = c(90), allow.multiplicative.trend = TRUE)
+  # Arima prediction
+  SYMB.pred.arima <- forecast(auto.arima(SYMB.ts), h=n.ahead, level = c(90))
+  
   # Returns prediction and lower bound prediction
-  return( list(SYMB.predict[length(SYMB.predict[,1])], SYMB.predict[length(SYMB.predict)]) )
+  return( list(SYMB.pred.HoWin$mean[n.ahead], SYMB.pred.HoWin$lower[n.ahead],
+               SYMB.pred.arima$mean[n.ahead]) )
 }
 
-# To run it:
-# plot.Prediction(stock, c(as.numeric(format(end.date.model, format = "%Y")), as.numeric(format(end.date.model, format = "%m"))), 
-#                        length(seq(to=Sys.Date(), from=end.date.model, by='month')))
-plot.Prediction <- function(stock, end.date.model, months.ahead) {
+# Function to plot prediction -- just to check
+plot.Prediction <- function(stock, end.date.model, apply.date.model) {
   # Obtaining historical data
   SYMB_prices <- get.hist.quote(instrument=stock, 
                                 quote="AdjClose",provider="yahoo", 
@@ -168,8 +210,11 @@ plot.Prediction <- function(stock, end.date.model, months.ahead) {
   # Find the start of the quoted prices
   start <- c(as.numeric(format(index(SYMB_prices)[1], format = "%Y", tz = "", usetz = FALSE)),
              as.numeric(format(index(SYMB_prices)[1], format = "%m", tz = "", usetz = FALSE)))
+  # Find the end of the quoted prices
+  end <- c(as.numeric(format(end.date.model, format = "%Y", tz = "", usetz = FALSE)),
+           as.numeric(format(end.date.model, format = "%m", tz = "", usetz = FALSE)))
   
-  SYMB.ts <- ts(SYMB_prices, start = start, end = end.date.model, freq=12)
+  SYMB.ts <- ts(SYMB_prices, start = start, end = end, freq=12)
   #plot(SYMB.ts, xlab= "Time (months)", ylab = "Price")
   # Do the Holt-Winters model with mult season option if it can
   SYMB.hw <- if (class(try(HoltWinters(SYMB.ts, seasonal = "mult"), silent = TRUE)) != "try-error") {
@@ -184,7 +229,8 @@ plot.Prediction <- function(stock, end.date.model, months.ahead) {
   #plot (SYMB.hw)
   
   # Prediction into the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  SYMB.predict <- predict(SYMB.hw, n.ahead = months.ahead, level = 0.9, prediction.interval = TRUE)
+  SYMB.predict <- predict(SYMB.hw, n.ahead = (length(seq(from=end.date.model, to=apply.date.model, by='month'))-1),
+                          level = 0.9, prediction.interval = TRUE)
   SYMB.ts <- ts(SYMB_prices, start = start, freq=12)
   ts.plot(SYMB.ts, as.ts(SYMB.hw$fitted[,1]), SYMB.predict, lty = c(1,2,3,3,3)
           , xlab= "Time (months)", ylab = paste("Price", stock))
@@ -259,6 +305,28 @@ return.numCol <- function(FinIS, FinBS, end.date.model) {
   
   return(list(numIS, numBS))
 }
+
+# Function that takes a time series with daily data and returns a data frame including the last day of every month data
+daily2endMonth <- function(daily.series) {
+  
+  # Data frame with date and numeric fields
+  month.series <- data.frame(Date = numeric(0), AdjCl = numeric(0))
+  i <- 1
+  while(i <= length(daily.series)) {
+    # Obtaining for 1 month by subsetting
+    month.data <- daily.series[as.numeric(format(index(daily.series[i]), format = "%Y")) == as.numeric(format(index(daily.series), format = "%Y"))
+                             & as.numeric(format(index(daily.series[i]), format = "%m")) == as.numeric(format(index(daily.series), format = "%m")),]
+    # Only add the last day of the month
+    month.series[nrow(month.series) + 1, 2] <- tail(month.data,1)
+    month.series[nrow(month.series), 1] <- index(tail(month.data,1))
+    
+    i <- i + length(month.data)
+  }
+  month.series$Date <- as.Date(month.series$Date)
+  return(month.series)
+}
+
+
 
 
 

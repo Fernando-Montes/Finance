@@ -8,7 +8,7 @@
 library(tseries)
 library(quantmod)
 
-targetPath <- "~/Dropbox/Courses/R/Finance/Downloads/"
+targetPath <- "~/Dropbox/Courses/R/Finance/Downloads2/"
 
 # Loading additional functions
 source('~/Dropbox/Courses/R/Finance/SymbolBySector.R')
@@ -69,22 +69,23 @@ for (i in 1:length(stockInfoAll[,1])) {
   stock <- stockInfoAll[i,1]
   
   # if there is information online from both yahoo and google
-  if ( class(try(get.hist.quote(instrument=stock, quote="AdjClose", provider="yahoo", compression="m", retclass="zoo", quiet=TRUE), silent = TRUE)) != "try-error" &
-       class(try(getFinancials(stock, auto.assign = FALSE), silent = TRUE)) != "try-error" ) {
+  if ( class(try(get.hist.quote(instrument=stock, quote="AdjClose", provider="yahoo", compression="d", retclass="zoo", quiet=TRUE), silent = TRUE)) != "try-error" 
+      # & class(try( getFinancials(stock, auto.assign = FALSE), silent = TRUE)) != "try-error" 
+       ) {
     
     # Obtaining historical stock price data
-    SYMB_prices <- get.hist.quote(instrument=stock, quote="AdjClose",provider="yahoo", compression="m", retclass="zoo", quiet=TRUE)
+    SYMB_prices <- get.hist.quote(instrument=stock, quote="AdjClose",provider="yahoo", compression="d", retclass="zoo", quiet=TRUE)
     # Code to write info
     fileName <- paste(targetPath, stock, "-prices.RData", sep="")
     save(SYMB_prices, file = fileName)
     
-    # Obtaining stock financial info
-    FinStock <- getFinancials(stock, auto.assign = FALSE)
-    # Code to write info
-    fileName <- paste(targetPath, stock, "-FinStock.RData", sep="")
-    save(FinStock, file = fileName)
-    
-    stockInfo[nrow(stockInfo) + 1, ] <- c(stock, stockInfoAll[i,2], stockInfoAll[i,3])
+    # # Obtaining stock financial info
+    # FinStock <- getFinancials(stock, auto.assign = FALSE)
+    # # Code to write info
+    # fileName <- paste(targetPath, stock, "-FinStock.RData", sep="")
+    # save(FinStock, file = fileName)
+    # 
+    # stockInfo[nrow(stockInfo) + 1, ] <- c(stock, stockInfoAll[i,2], stockInfoAll[i,3])
   }
 }  
 

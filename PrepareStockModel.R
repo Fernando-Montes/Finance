@@ -31,11 +31,19 @@ prepare.model <- function(table) {
   table$Price.Category <- factor(table$Price.Category, levels = levels(table$Price.Category))
   
   # Regression using generalized linear regression or gbm ------------
+  gbmGrid <- expand.grid(.interaction.depth = (1:5) * 2, .n.trees = (1:10)*20, .shrinkage = .1, .n.minobsinnode = (5:15) )
   my_model <- train(
     actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + Price.Model.end + Assets +
       Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt +
-      predicted.win.loss + predictedLB.win.loss + SectorIndustry.Num, 
-    method ="gbm", data = my_train, train.fraction = 0.5)
+      predicted.hw.win.loss + predicted.hwLB.win.loss + predicted.arima.win.loss + 
+      Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
+      Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
+      Price.sma.200.peers + Price.sma.50.peers, 
+    method ="gbm", data = my_train, bag.fraction = 0.5, tuneGrid = gbmGrid,
+    #method ="ranger", data = my_train, tuneLength = 10, importance = 'impurity',  #mtry can change from 1 to tuneLength
+    #method ="glmnet", data = my_train, tuneGrid = expand.grid(alpha = seq(0, 1, length = 10), lambda = seq(0.0001, 1, length = 20)), preProcess = c("center", "scale"),
+    trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE)
+    )
   
   return(list(my_model, my_train, my_val))
   
