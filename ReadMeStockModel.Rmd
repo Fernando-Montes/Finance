@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Goal
-The goal is to predict the performance of a given stock from financial information available in the past. The model attempts to predict the performance using a time horizon of 15 months. The model has been run the first week of October 2016. The figure of merit used to predict the performance is *actual.win.loss =  (current stock price - stock price 15 months ago)/(stock price 15 months ago)*.
+The goal is to predict the performance of a given stock from financial information available in the past. The model attempts to predict the performance using a fixed time horizon. The figure of merit used to predict the performance is *actual.win.loss =  (current stock price - stock price 15 months ago)/(stock price 15 months ago)*.
 
 # Data
 The model is built using with the financial information available until June 30, 2015 (this date is referred to as end.model.date). It uses 2 years of historical stock price per month. The price at end.model.date divided by the lowest and highest stock prices during those two years are variables of the model. Information is downloaded from [yahoo](https://finance.yahoo.com/) and [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) finance. It uses packages quantmod and PerformanceAnalytics.
@@ -94,7 +94,7 @@ The actual model construction[^1]:
 
 I played with varying the variables and I noticed that some variables are used incorrectly by *caret* and/or *gbm*. Using a factor that has 4 levels according to the stock price at the end model date (<1, 1-10, 10-100, >100) did not work. The final model was incorrectly only assigning 3 *categories* (same as levels?) and I could not make it work. Furthermore, those categories were not relevant in the final model. Therefore, I decided to use __Price.Model.end__ instead. 
 
-The following results are obtained:
+The time horizon used in the following is 15 months in the future (from the data financial information is last available). The following results are obtained:
 ```{}
 my_model$results
     shrinkage interaction.depth n.minobsinnode n.trees     RMSE   Rsquared    RMSESD  RsquaredSD
@@ -166,13 +166,17 @@ The random forest model $ranger$ results in 26.9 and 57.6 for the RMSE in train 
 
 The linear regression model $glmnet$ performs badly and results in an RMSE in the validation data larger than a 100.
 
-## Attempts 12-: 
+## Attempts 12-15: 
 
 Changes from previous attempts:
 
 * Variables added:
       + Simple moving average variable (over 200 days) and comparison with its peers.
+      + Simple moving average variable (over 50 days) and comparison with its peers.
       + ARIMA forecast prediction.
+      + Relative Strength Index RSI over 10 days: it expresses the fraction of gains and losses over the past lookback periods, 100 - (100/(1 + RS)), where RS is the average gain over the average loss over the lookback window decided.
+      + Relative Strength Index RSI over 50 days.
+      + Value representing the percentage rank of the stock price between the lowest and highest stock price during the last 2 years. 
 * Changed varibles calculating the stock price over the lowest (and highest) stock price during the last 2 years to a calculation that uses daily stock prices instead of monthly stock prices.
 * Corrections:
       + Holt-Winters prediction and its lower bound with 90% confidence were calculated with a time horizon incorrectly calculated (it was 1 month too long).
@@ -182,11 +186,93 @@ In the previous attempts and these ones too, the calculated RMEs are highly vari
 
 ![](Figures/ranger_gbm.png)
 
-The relative importance of the variables also changes but not as much. This is a particular example for the $ranger$ method:
+The relative importance of the variables also changes but not as much (most of the time). This is a particular example for the $ranger$ method:
 
 ![](Figures/ranger3_varImp.png)     
+
+The train data is over-fitted with the $ranger$ method but the validation data modeling is not worse than using the $gbm$ (or any other method) method. One of the main takeaways so far is that despite adding more and more variables, the effectiveness of the model, as measured by the RMS value, has not improved much from the first attempts.  
+
+## Changing time horizon:
+
+Using a time horizon of 3 months, the results get better:
+
+![](Figures/ranger_gbm_timeHorizon3.png)
+
+The relative importance of the different variables also change. Enterprise value (stock price * number of shares) variables become more relevant. 
+
+![](Figures/ranger4_varImp.png) 
+
+For the $gbm$ method, this is what the predictions look like:
+
+![](Figures/GBM_timeHorizon3.png)
+
+## Eliminating quaterly variables (assets, equity, etc.):
+
+By leaving only stock price variables and eliminating all quaterly variables the RMS results do not change dramatically:
+
+![](Figures/ranger_gbm_timeHorizon3_redVar.png)
+
+For the $gbm$ method, this is what the predictions look like:
+
+![](Figures/GBM_timeHorizon3_redVar.png)
+
+## Robustness of the model:
+
+This is how the ranking of predictions compare between methods $gbm$ and $ranger$:
+
+![](Figures/ranger_gbm_robust_3.png)
+
+Notice how there are some companies that have a high rank in one of the methods but not in both. There are also some companies highly ranked in both methods. The colors indicate the ranking based on actual/win losses. Notice that there are more high ranking (high gains) companies in the top right corner than in the bottom left corner. However, the correlation between model ranking and actual win/loss ranking is not great: 
+
+![](Figures/ranger_actual_robust_3.png)
+
+The last figure should show a linear correlation if the model were perfect. As it, there is still a lot of room for improvement. Adding quaterly variables does not improve the figure much. Therefore they are removed again for the following results. 
+
+![](Figures/ranger_actual_robust_3_quaterly.png)
+
+The correlation between results using $glmnet$ and $ranger$ is not as clean, but that could actually be better since companies with high rankings in both methods also seem to have good rankings in the actual win/loss ranking.
+
+![](Figures/ranger_glmnet_robust_3.png)
+
+I also tested the robustness of using the $ranger$ method using different train data. The resulting graph is very similar to the one comparing different methods. 
+
+Requiring a rank in methods $ranger$, $gbm$ and $glmnet$ above 90%, the following companies are the ones recommended by the model (prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2015/09/30): 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(googleVis))
+```
+```{r results='asis', echo=FALSE}
+load(file = "~/Dropbox/Courses/R/Finance/Figures/Companies90_2015-06-30.Rda")
+tab1 <- gvisTable(head(temp, 13))
+print(tab1, "chart")
+```
+
+Using the same model but for data from 2013/09/03 to 2015/09/30 for a prediction at 2015/12/31 results in RMS of 34 for $ranger$ and $gbm$ methods. Method $glmnet$ has an outlier that makes the RMS blow up. These are the companies with the highest actual ranking and their method rankings:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(googleVis))
+```
+```{r results='asis', echo=FALSE}
+load(file = "~/Dropbox/Courses/R/Finance/Figures/CompaniesBest_2015-09-30.Rda")
+tab1 <- gvisTable(head(temp, 13))
+print(tab1, "chart")
+```
+
+None of the methods is particularly good. It seems that the assumption that a model created and optimized at an earlier time (3 months in this case) is not completely valid by the time it has to be used. However some of the model is still useful. Requiring an average rank in methods $ranger$, $gbm$ and $glmnet$ above 95.5%, results in companies:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(googleVis))
+```
+```{r results='asis', echo=FALSE}
+load(file = "~/Dropbox/Courses/R/Finance/Figures/Companies95.5_2015-09-30.Rda")
+tab1 <- gvisTable(head(temp, 13))
+print(tab1, "chart")
+```
+
+which have an average actual win loss percentage of 4.6% while the average of all the companies considered is 0.7%. When adding quaterly variables the average actual win loss percentage is 7.5%.
+
+Conclusion: model works... not great but it predicts in average winner companies!
 
 # To do
 * Add/replace variables:
       + Add a google trend variables (stock and sector).
-* Investigate changing time horizon.
