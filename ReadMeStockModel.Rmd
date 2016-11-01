@@ -8,10 +8,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Goal
-The goal is to predict the performance of a given stock from financial information available in the past. The model attempts to predict the performance using a fixed time horizon. The figure of merit used to predict the performance is *actual.win.loss =  (current stock price - stock price 15 months ago)/(stock price 15 months ago)*.
+The goal is to predict the performance of a given stock from financial information available in the past. The model attempts to predict the performance using a fixed time horizon. The figure of merit used to predict the performance is *actual.win.loss =  (stock price at prediction date - stock price by end of model date)/(stock price by end of model date)*.
 
 # Data
-The model is built using with the financial information available until June 30, 2015 (this date is referred to as end.model.date). It uses 2 years of historical stock price per month. The price at end.model.date divided by the lowest and highest stock prices during those two years are variables of the model. Information is downloaded from [yahoo](https://finance.yahoo.com/) and [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) finance. It uses packages quantmod and PerformanceAnalytics.
+The model is built using with financial information available on the web. The final date used in the model is referred to as end.model.date (it corresponds to stock price by end of model date). It uses 2 years of historical stock price to construct the model. The price at end.model.date divided by the lowest and highest stock prices during those two years are variables of the model. Information is downloaded from [yahoo](https://finance.yahoo.com/) and [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) finance. It uses packages quantmod and PerformanceAnalytics.
 
 ```{}
 # Obtaining historical stock price data
@@ -25,7 +25,7 @@ The model is built using with the financial information available until June 30,
 
 All the stocks available in yahoo finance are tentatively used in the model preparation and prediction. The implementation of which information is available online is based on <https://github.com/mkfs> and from functions written by [me](https://github.com/Fernando-Montes/Finance). 
 
-There are 2755 companies that have all the information required in the model. 
+There are about 2750 companies that have all the information required in the model. 
 
 Companies like *brgo* have what it seems wrong information. The price was that high only for a couple of days. Another example is *mspc* that has information that is different from what the yahoo website has. It there something wrong with some of these ultra cheap stocks?
 There are 18 companies that have a price less than 1 cent during the two years prior to the end model date (*brgo* and *mspc* among them). Those companies were not taken into account when constructing the model. 
@@ -62,7 +62,7 @@ plotmat(M, pos = c(2, 2, 2, 2), name = names, lwd = 2, box.lwd = 1, cex.txt = 0.
 # Model and Results
 
 ## Attempts 1-10: 
-The preferred model was a $gbm$ model with the following variables:
+The model was constructed using the following variables:
 
 Variable                    |Meaning
 ----------------------------|-------------------------------------------------------------------------------------------------------------
@@ -94,7 +94,8 @@ The actual model construction[^1]:
 
 I played with varying the variables and I noticed that some variables are used incorrectly by *caret* and/or *gbm*. Using a factor that has 4 levels according to the stock price at the end model date (<1, 1-10, 10-100, >100) did not work. The final model was incorrectly only assigning 3 *categories* (same as levels?) and I could not make it work. Furthermore, those categories were not relevant in the final model. Therefore, I decided to use __Price.Model.end__ instead. 
 
-The time horizon used in the following is 15 months in the future (from the data financial information is last available). The following results are obtained:
+The time horizon used in the following is 15 months in the future (from the data financial information is last available). The model was prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2016/09/30. The following results are obtained:
+
 ```{}
 my_model$results
     shrinkage interaction.depth n.minobsinnode n.trees     RMSE   Rsquared    RMSESD  RsquaredSD
@@ -271,7 +272,7 @@ print(tab1, "chart")
 
 which have an average actual win loss percentage of 4.6% while the average of all the companies considered is 0.7%. When adding quaterly variables the average actual win loss percentage is 7.5%.
 
-Conclusion: model works... not great but it predicts in average winner companies!
+Changing the construction of the model from 2014/03/03 to 2016/03/31 and applying it to 2016/06/30, obtains an average actual win loss percentage of 22.4% for companies with a predicted average ranking of 97%, compared to 5.4% for the average for all companies. However, when using the same model for data from 2014/06/03 to 2016/06/30 for a prediction by 2016/09/30 obtains an average actual win loss percentage of -3.4% for companies with a predicted average ranking of 99%, compared to 8.7% for the average for all companies. The model does not work!
 
 # To do
 * Add/replace variables:

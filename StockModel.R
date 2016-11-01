@@ -37,9 +37,9 @@ source('~/Dropbox/Courses/R/Finance/PrepareStockModel.R')
 
 # The model will be trained up to end.date.model. This date is currently set by earliest financial
 # quaterly data from google financial
-ini.date.model <- as.Date("2013/06/03")   # Initial date the model is prepared
-end.date.model <- as.Date("2015/06/30")   # Final date the model is prepared -- should be end of month
-apply.date.model <- as.Date("2015/09/30") # Date the model is designed to predict win/loss performance -- should be end of month
+ini.date.model <- as.Date("2014/03/03")   # Initial date the model is prepared
+end.date.model <- as.Date("2016/03/31")   # Final date the model is prepared -- should be end of month
+apply.date.model <- as.Date("2016/06/30") # Date the model is designed to predict win/loss performance -- should be end of month
 
 # Prepare table with stock info
 table.model <- prepare.table(stockInfo, end.date.model, ini.date.model, apply.date.model)
@@ -48,7 +48,7 @@ table.model <- table.model[table.model$Price.Model.end > 0.01 & table.model$Pric
 # Adding to table valuations compared to peers
 table.model <- prepare.table.sector(table.model) 
 # Saving table.model
-save(table.model, file = "~/Dropbox/Courses/R/Finance/Figures/Table.model-3m_2015-06-30.Rda")
+save(table.model, file = "~/Dropbox/Courses/R/Finance/Figures/Table-3m_2016-06-30.Rda")
 
 # Understanding the data model was created with ---------
 # ggplot(table.model, aes(x=Price.earning, y=actual.win.loss)) + geom_point(alpha = 0.1) + geom_smooth() + xlim(c(-250, 250))
@@ -95,7 +95,7 @@ for (i in 1:length(ordered_ranger$Stock.SYM)) {
 }
 # rank.robust <- na.exclude(rank.robust)
 ggplot(rank.robust, aes(x=rank_ranger, y=rank_glmnet, color=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
-  labs(title='GLMNET vs Ranger')+ xlab("Ranger rank [%]") + ylab("GLMNET rank [%]") + 
+  labs(title='glmnet vs Ranger')+ xlab("Ranger rank [%]") + ylab("glmnet rank [%]") + 
   xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
 ggplot(rank.robust, aes(x=((rank_ranger+rank_gbm+rank_glmnet)/3), y=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
   labs(title='Actual vs Average rank pred.')+ xlab("Average rank [%]") + ylab("Actual rank [%]") + 
@@ -115,56 +115,56 @@ xyplot(resamples)
 
 # Understanding stock model ---------------------------------------
 
-# my_model <- model_ranger # Preferred method
-# 
-# # Show RMS for the method
-# resampleHist(my_model)
-# 
-# # Displaying model train results 
-# my_train_res <- my_train
-# my_prediction_train <- predict(my_model, my_train)
-# my_train_res$model_pred <- my_prediction_train
-# # Calculating RMSE
-# sqrt(mean( (my_train_res$model_pred-my_train_res$actual.win.loss)^2 ))
-# p <- ggplot(my_train_res,
-#             aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
-# my_train_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Train data') + coord_fixed(ratio=0.3)
-# # Displaying model validation results 
-# my_val_res <- my_val
-# my_prediction_val <- predict(my_model, my_val)
-# my_val_res$model_pred <- my_prediction_val
-# # Calculating RMSE
-# sqrt(mean( (my_val_res$model_pred-my_val_res$actual.win.loss)^2 ))
-# p <- ggplot(my_val_res,
-#             aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
-# my_val_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Validation data') + coord_fixed(ratio=0.3)
-# 
-# # Define grid layout to locate plots and print each graph
-# require(gridExtra)
-# png(file.path(path = "~/Dropbox/Courses/R/Finance/Figures/" , filename = "GBM_timeHorizon3_redVar.png"), height = 450, width = 800)
-# grid_plot <- grid.arrange(my_train_plot, my_val_plot, ncol=2)
-# dev.off()
-# 
-# # Print top results
-# head(my_val_res[order(-my_val_res$model_pred),], 10)
-# res_val <- my_val_res[order(-my_val_res$model_pred),]
-# save(res_val, file = "~/Dropbox/Courses/R/Finance/Figures/Res_val.Rda")
-# 
-# # Important variables in the final model
-# plot(varImp(my_model))   # or
-# imp_par <- summary(my_model$finalModel)
-# save(imp_par, file = "~/Dropbox/Courses/R/Finance/Figures/imp_par2.Rda")
-# 
-# # Understanding how robust the model is
-# p <- ggplot(my_val_res[order(my_val_res$model_pred),],
-#             aes(x=seq(1,length(my_val_res$model_pred))*100/length(my_val_res$model_pred), y=model_pred)) + xlim(c(0, 100)) + ylim(c(-100, 100))
-# p + geom_point(alpha = 0.1) + labs(title='Prediction vs rank') + coord_fixed(ratio=0.3) + xlab("Rank [%]") + ylab("Win-Loss prediction [%]") 
+my_model <- model_ranger # Preferred method
+
+# Show RMS for the method
+resampleHist(my_model)
+
+# Displaying model train results
+my_train_res <- my_train
+my_prediction_train <- predict(my_model, my_train)
+my_train_res$model_pred <- my_prediction_train
+# Calculating RMSE
+sqrt(mean( (my_train_res$model_pred-my_train_res$actual.win.loss)^2 ))
+p <- ggplot(my_train_res,
+            aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
+my_train_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Train data') + coord_fixed(ratio=0.3)
+# Displaying model validation results
+my_val_res <- my_val
+my_prediction_val <- predict(my_model, my_val)
+my_val_res$model_pred <- my_prediction_val
+# Calculating RMSE
+sqrt(mean( (my_val_res$model_pred-my_val_res$actual.win.loss)^2 ))
+p <- ggplot(my_val_res,
+            aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
+my_val_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Validation data') + coord_fixed(ratio=0.3)
+
+# Define grid layout to locate plots and print each graph
+require(gridExtra)
+png(file.path(path = "~/Dropbox/Courses/R/Finance/Figures/" , filename = "GBM_timeHorizon3_redVar.png"), height = 450, width = 800)
+grid_plot <- grid.arrange(my_train_plot, my_val_plot, ncol=2)
+dev.off()
+
+# Print top results
+head(my_val_res[order(-my_val_res$model_pred),], 10)
+res_val <- my_val_res[order(-my_val_res$model_pred),]
+save(res_val, file = "~/Dropbox/Courses/R/Finance/Figures/Res_val.Rda")
+
+# Important variables in the final model
+plot(varImp(my_model))   # or
+imp_par <- summary(my_model$finalModel)
+save(imp_par, file = "~/Dropbox/Courses/R/Finance/Figures/imp_par2.Rda")
+
+# Understanding how robust the model is
+p <- ggplot(my_val_res[order(my_val_res$model_pred),],
+            aes(x=seq(1,length(my_val_res$model_pred))*100/length(my_val_res$model_pred), y=model_pred)) + xlim(c(0, 100)) + ylim(c(-100, 100))
+p + geom_point(alpha = 0.1) + labs(title='Prediction vs rank') + coord_fixed(ratio=0.3) + xlab("Rank [%]") + ylab("Win-Loss prediction [%]")
 
 # Using the stock model to make a recommendation -----------------
 
-ini.date.model <- as.Date("2013/09/03")   # Initial date the model is prepared
-end.date.model <- as.Date("2015/09/30")   # Final date the model is prepared -- should be end of month
-apply.date.model <- as.Date("2015/12/31") # Date the model is designed to predict win/loss performance -- should be end of month
+ini.date.model <- as.Date("2014/06/03")   # Initial date the model is prepared
+end.date.model <- as.Date("2016/06/30")   # Final date the model is prepared -- should be end of month
+apply.date.model <- as.Date("2016/09/30") # Date the model is designed to predict win/loss performance -- should be end of month
 
 # Prepare table with stock info
 table.pred <- prepare.table(stockInfo, end.date.model, ini.date.model, apply.date.model)
@@ -173,7 +173,7 @@ table.pred <- table.pred[table.pred$Price.Model.end > 0.01 & table.pred$Price.Mi
 # Adding to table valuations compared to peers
 table.pred <- prepare.table.sector(table.pred) 
 # Saving table.pred
-save(table.pred, file = "~/Dropbox/Courses/R/Finance/Figures/Table.pred-3m_2015-09-30.Rda")
+save(table.pred, file = "~/Dropbox/Courses/R/Finance/Figures/Table-3m_2016-09-30.Rda")
 
 # Using created model to make predictions
 table.pred$ranger_pred <- predict(model_ranger, table.pred)
@@ -205,7 +205,7 @@ ggplot(rank.pred, aes(x=((rank_ranger+rank_gbm+rank_glmnet)/3), y=rank_actual)) 
 
 # Best predictions from the different methods  
 temp <- rank.pred[rank.pred$rank_ranger > 93 & rank.pred$rank_gbm > 93 & rank.pred$rank_glmnet > 93, ]
-temp <- rank.pred[(rank.pred$rank_ranger + rank.pred$rank_gbm + rank.pred$rank_glmnet)/3 > 96, ]
+temp <- rank.pred[(rank.pred$rank_ranger + rank.pred$rank_gbm + rank.pred$rank_glmnet)/3 > 98, ]
 save(temp, file = "~/Dropbox/Courses/R/Finance/Figures/Companies95.5_2015-09-30.Rda")
 rank.pred[rank.pred$rank_ranger < 5 & rank.pred$rank_gbm < 5 & rank.pred$rank_glmnet < 5, ]
 
