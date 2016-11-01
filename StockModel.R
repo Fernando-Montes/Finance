@@ -49,6 +49,10 @@ table.model <- table.model[table.model$Price.Model.end > 0.01 & table.model$Pric
 table.model <- prepare.table.sector(table.model) 
 # Saving table.model
 save(table.model, file = "~/Dropbox/Courses/R/Finance/Figures/Table-3m_2016-06-30.Rda")
+load("~/Dropbox/Courses/R/Finance/Figures/Table-3m_2016-06-30.Rda") # loads table.model
+
+# Trying things
+# table.model <- table.model[table.model$Price.Category == "3",]
 
 # Understanding the data model was created with ---------
 # ggplot(table.model, aes(x=Price.earning, y=actual.win.loss)) + geom_point(alpha = 0.1) + geom_smooth() + xlim(c(-250, 250))
@@ -115,50 +119,56 @@ xyplot(resamples)
 
 # Understanding stock model ---------------------------------------
 
-my_model <- model_ranger # Preferred method
+# my_model <- model_ranger # Preferred method
+# 
+# # Show RMS for the method
+# resampleHist(my_model)
+# 
+# # Displaying model train results
+# my_train_res <- my_train
+# my_prediction_train <- predict(my_model, my_train)
+# my_train_res$model_pred <- my_prediction_train
+# # Calculating RMSE
+# sqrt(mean( (my_train_res$model_pred-my_train_res$actual.win.loss)^2 ))
+# p <- ggplot(my_train_res,
+#             aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
+# my_train_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Train data') + coord_fixed(ratio=0.3)
+# # Displaying model validation results
+# my_val_res <- my_val
+# my_prediction_val <- predict(my_model, my_val)
+# my_val_res$model_pred <- my_prediction_val
+# # Calculating RMSE
+# sqrt(mean( (my_val_res$model_pred-my_val_res$actual.win.loss)^2 ))
+# p <- ggplot(my_val_res,
+#             aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
+# my_val_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Validation data') + coord_fixed(ratio=0.3)
+# 
+# # Define grid layout to locate plots and print each graph
+# require(gridExtra)
+# png(file.path(path = "~/Dropbox/Courses/R/Finance/Figures/" , filename = "GBM_timeHorizon3_redVar.png"), height = 450, width = 800)
+# grid_plot <- grid.arrange(my_train_plot, my_val_plot, ncol=2)
+# dev.off()
+# 
+# # Print top results
+# head(my_val_res[order(-my_val_res$model_pred),], 10)
+# res_val <- my_val_res[order(-my_val_res$model_pred),]
+# save(res_val, file = "~/Dropbox/Courses/R/Finance/Figures/Res_val.Rda")
+# 
+# # Important variables in the final model
+# plot(varImp(my_model))   # or
+# imp_par <- summary(my_model$finalModel)
+# save(imp_par, file = "~/Dropbox/Courses/R/Finance/Figures/imp_par2.Rda")
 
-# Show RMS for the method
-resampleHist(my_model)
+# # Understanding how robust the model is
+# p <- ggplot(my_val_res[order(my_val_res$model_pred),],
+#             aes(x=seq(1,length(my_val_res$model_pred))*100/length(my_val_res$model_pred), y=model_pred)) + xlim(c(0, 100)) + ylim(c(-100, 100))
+# p + geom_point(alpha = 0.1) + labs(title='Prediction vs rank') + coord_fixed(ratio=0.3) + xlab("Rank [%]") + ylab("Win-Loss prediction [%]")
 
-# Displaying model train results
-my_train_res <- my_train
-my_prediction_train <- predict(my_model, my_train)
-my_train_res$model_pred <- my_prediction_train
-# Calculating RMSE
-sqrt(mean( (my_train_res$model_pred-my_train_res$actual.win.loss)^2 ))
-p <- ggplot(my_train_res,
-            aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
-my_train_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Train data') + coord_fixed(ratio=0.3)
-# Displaying model validation results
-my_val_res <- my_val
-my_prediction_val <- predict(my_model, my_val)
-my_val_res$model_pred <- my_prediction_val
-# Calculating RMSE
-sqrt(mean( (my_val_res$model_pred-my_val_res$actual.win.loss)^2 ))
-p <- ggplot(my_val_res,
-            aes(x=model_pred, y=actual.win.loss)) + xlim(c(-50, 100)) + ylim(c(-150, 301))
-my_val_plot <- p + geom_point(alpha = 0.1) + geom_smooth() + labs(title='Validation data') + coord_fixed(ratio=0.3)
-
-# Define grid layout to locate plots and print each graph
-require(gridExtra)
-png(file.path(path = "~/Dropbox/Courses/R/Finance/Figures/" , filename = "GBM_timeHorizon3_redVar.png"), height = 450, width = 800)
-grid_plot <- grid.arrange(my_train_plot, my_val_plot, ncol=2)
-dev.off()
-
-# Print top results
-head(my_val_res[order(-my_val_res$model_pred),], 10)
-res_val <- my_val_res[order(-my_val_res$model_pred),]
-save(res_val, file = "~/Dropbox/Courses/R/Finance/Figures/Res_val.Rda")
-
-# Important variables in the final model
-plot(varImp(my_model))   # or
-imp_par <- summary(my_model$finalModel)
-save(imp_par, file = "~/Dropbox/Courses/R/Finance/Figures/imp_par2.Rda")
-
-# Understanding how robust the model is
-p <- ggplot(my_val_res[order(my_val_res$model_pred),],
-            aes(x=seq(1,length(my_val_res$model_pred))*100/length(my_val_res$model_pred), y=model_pred)) + xlim(c(0, 100)) + ylim(c(-100, 100))
-p + geom_point(alpha = 0.1) + labs(title='Prediction vs rank') + coord_fixed(ratio=0.3) + xlab("Rank [%]") + ylab("Win-Loss prediction [%]")
+# Understanding systematics of the model
+ggplot(my_val,
+  aes(x=ranger_pred, y=actual.win.loss, color = Price.Model.end)) + geom_point() + scale_color_gradient(low="white", high="black") +
+  labs(title='Actual.win.loss vs Pred.win.loss')+ xlab("Pred.win.loss") + ylab("Actual.win.loss") + 
+  xlim(c(-30, 50)) + ylim(c(-50, 100)) + coord_fixed(ratio=0.9)  
 
 # Using the stock model to make a recommendation -----------------
 

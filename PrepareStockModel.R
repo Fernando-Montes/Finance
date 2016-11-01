@@ -27,8 +27,8 @@ prepare.model <- function(my_train, methodchosen) {
   
   if (methodchosen == "ranger") {  
     my_model <- train(
-      actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + Price.Model.end +
-        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + Assets +
+      actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + #Price.Model.end +
+        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + #Assets +
         predicted.hw.win.loss + predicted.hwLB.win.loss + predicted.arima.win.loss + 
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
         Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
@@ -38,8 +38,8 @@ prepare.model <- function(my_train, methodchosen) {
   } else if (methodchosen == "gbm") {
     gbmGrid <- expand.grid(.interaction.depth = (1:5) * 2, .n.trees = (1:10)*20, .shrinkage = .1, .n.minobsinnode = (5:15) )
     my_model <- train(
-      actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + Price.Model.end +
-        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + Assets +
+      actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + #Price.Model.end +
+        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + #Assets +
         predicted.hw.win.loss + predicted.hwLB.win.loss + predicted.arima.win.loss + 
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
         Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
@@ -48,8 +48,8 @@ prepare.model <- function(my_train, methodchosen) {
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   } else if (methodchosen == "glmnet") {
     my_model <- train(
-      actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + Price.Model.end +
-        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + Assets +
+      actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + #Price.Model.end +
+        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + #Assets +
         predicted.hw.win.loss + predicted.hwLB.win.loss + predicted.arima.win.loss + 
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
         Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
