@@ -1,96 +1,134 @@
----
-title: "Stock Model"
-output:
-  html_document: 
-    self_contained: no
-  pdf_document: default
----
+Goal
+====
 
+The goal is to predict the performance of a given stock from financial information available in the past. The model attempts to predict the performance using a fixed time horizon. The figure of merit used to predict the performance is *actual.win.loss = (stock price at prediction date - stock price by end of model date)/(stock price by end of model date)*.
 
+Data
+====
 
-# Goal
-The goal is to predict the performance of a given stock from financial information available in the past. The model attempts to predict the performance using a fixed time horizon. The figure of merit used to predict the performance is *actual.win.loss =  (stock price at prediction date - stock price by end of model date)/(stock price by end of model date)*.
-
-# Data
 The model is built using with financial information available on the web. The final date used in the model is referred to as end.model.date (it corresponds to stock price by end of model date). It uses 2 years of historical stock price to construct the model. The price at end.model.date divided by the lowest and highest stock prices during those two years are variables of the model. Information is downloaded from [yahoo](https://finance.yahoo.com/) and [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) finance. It uses packages quantmod and PerformanceAnalytics.
 
-```{}
-# Obtaining historical stock price data
-    SYMB_prices <- get.hist.quote(instrument=stock, quote="AdjClose",provider="yahoo", compression="m", retclass="zoo", quiet=TRUE)
-```
+    # Obtaining historical stock price data
+        SYMB_prices <- get.hist.quote(instrument=stock, quote="AdjClose",provider="yahoo", compression="m", retclass="zoo", quiet=TRUE)
 
-```{}
-# Obtaining stock financial info
-    FinStock <- getFinancials(stock, auto.assign = FALSE)
-```
+    # Obtaining stock financial info
+        FinStock <- getFinancials(stock, auto.assign = FALSE)
 
-Almost all stocks available in yahoo finance are used in the model preparation and prediction. Downloading of available information is is based on <https://github.com/mkfs> and from functions written by [me](https://github.com/Fernando-Montes/Finance). 
+Almost all stocks available in yahoo finance are used in the model preparation and prediction. Downloading of available information is is based on <https://github.com/mkfs> and from functions written by [me](https://github.com/Fernando-Montes/Finance).
 
-There are about 2750 companies that have all the information required in the model. 
+There are about 2750 companies that have all the information required in the model.
 
-Companies like *brgo* have what it seems wrong information since the price is unrealistically high for a couple of days and suddenly decreases to normal values. Another example is *mspc* that has information that is different from what the yahoo website has. It there something wrong with some of these ultra cheap stocks?
-There are 18 companies that have a price less than 1 cent during the two years prior to the end model date (*brgo* and *mspc* among them). Those companies were not taken into account when constructing the model. **Update August 2017:** Only companies that have a stock price greater than $5 and belong to the Nasdaq or NYSE stock exchanges are included. 
+Companies like *brgo* have what it seems wrong information since the price is unrealistically high for a couple of days and suddenly decreases to normal values. Another example is *mspc* that has information that is different from what the yahoo website has. It there something wrong with some of these ultra cheap stocks? There are 18 companies that have a price less than 1 cent during the two years prior to the end model date (*brgo* and *mspc* among them). Those companies were not taken into account when constructing the model. **Update August 2017:** Only companies that have a stock price greater than $5 and belong to the Nasdaq or NYSE stock exchanges are included.
 
-# Code
-The financial information is saved locally since it is time consuming to access websites every time the model is run, and because google asks for user input (captcha screen) if running the script. The main file is StockModel.R. The file names describes what each file does. 
+Code
+====
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png)
+The financial information is saved locally since it is time consuming to access websites every time the model is run, and because google asks for user input (captcha screen) if running the script. The main file is StockModel.R. The file names describes what each file does.
 
-# Model and Results
+![](ReadMeStockModel_files/figure-markdown_github/unnamed-chunk-1-1.png)
 
-## Attempts 1-10: 
+Model and Results
+=================
+
+Attempts 1-10:
+--------------
+
 The model was constructed using the following variables:
 
-Variable                    |Meaning
-----------------------------|-------------------------------------------------------------------------------------------------------------
-Price.Model.end.low.ratio   |Stock price / lowest stock price during the last 2 years
-Price.Model.end.high.ratio  |Stock price / highest stock price during the last 2 years
-Price.Model.end             |Stock price
-Assets                      |Total assets
-Ev.earning                  |Enterprise value / earnings 
-Ev.ebitda                   |Enterprise value / EBITDA (earnings before interests, taxes, depreciation, amortization and unusual expenses) 
-Ev.book                     |Enterprise value / book value
-Ev.revenue                  |Enterprise value / revenue
-Ev.cash                     |Enterprise value / cash
-Price.equity.debt           |Stock price /(Total equity/ Total debt)
-predicted.win.loss          |Predicted performance using a Holt-Winters model of the stock price
-predictedLB.win.loss        |Predicted lower bound performance using a Holt-Winters model of the stock price
-SectorIndustry.Num          |Sector-industry number the stock belongs to
+<table>
+<colgroup>
+<col width="20%" />
+<col width="79%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Price.Model.end.low.ratio</td>
+<td>Stock price / lowest stock price during the last 2 years</td>
+</tr>
+<tr class="even">
+<td>Price.Model.end.high.ratio</td>
+<td>Stock price / highest stock price during the last 2 years</td>
+</tr>
+<tr class="odd">
+<td>Price.Model.end</td>
+<td>Stock price</td>
+</tr>
+<tr class="even">
+<td>Assets</td>
+<td>Total assets</td>
+</tr>
+<tr class="odd">
+<td>Ev.earning</td>
+<td>Enterprise value / earnings</td>
+</tr>
+<tr class="even">
+<td>Ev.ebitda</td>
+<td>Enterprise value / EBITDA (earnings before interests, taxes, depreciation, amortization and unusual expenses)</td>
+</tr>
+<tr class="odd">
+<td>Ev.book</td>
+<td>Enterprise value / book value</td>
+</tr>
+<tr class="even">
+<td>Ev.revenue</td>
+<td>Enterprise value / revenue</td>
+</tr>
+<tr class="odd">
+<td>Ev.cash</td>
+<td>Enterprise value / cash</td>
+</tr>
+<tr class="even">
+<td>Price.equity.debt</td>
+<td>Stock price /(Total equity/ Total debt)</td>
+</tr>
+<tr class="odd">
+<td>predicted.win.loss</td>
+<td>Predicted performance using a Holt-Winters model of the stock price</td>
+</tr>
+<tr class="even">
+<td>predictedLB.win.loss</td>
+<td>Predicted lower bound performance using a Holt-Winters model of the stock price</td>
+</tr>
+<tr class="odd">
+<td>SectorIndustry.Num</td>
+<td>Sector-industry number the stock belongs to</td>
+</tr>
+</tbody>
+</table>
 
-The actual model construction[^1]:
-```{}
-   my_model <- train(
-    actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + Price.Model.end + Assets +
-      Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt +
-      predicted.win.loss + predictedLB.win.loss + SectorIndustry.Num, 
-    method ="gbm", data = my_train, train.fraction = 0.5, tuneLength = 10,  #mtry can change from 1 to tuneLength
-    trControl = trainControl(method = "cv", number = 5, repeats = 10, verboseIter = TRUE)
-    )
-```
-[^1]: The $gbm$ method does not work correctly if train.fraction is not defined explicitely. 
+The actual model construction[1]:
 
-I played with varying the variables and I noticed that some variables are used incorrectly by *caret* and/or *gbm*. Using a factor that has 4 levels according to the stock price at the end model date (<1, 1-10, 10-100, >100) did not work. The final model was incorrectly only assigning 3 *categories* (same as levels?) and I could not make it work. Furthermore, those categories were not relevant in the final model. Therefore, I decided to use __Price.Model.end__ instead. 
+       my_model <- train(
+        actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + Price.Model.end + Assets +
+          Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt +
+          predicted.win.loss + predictedLB.win.loss + SectorIndustry.Num, 
+        method ="gbm", data = my_train, train.fraction = 0.5, tuneLength = 10,  #mtry can change from 1 to tuneLength
+        trControl = trainControl(method = "cv", number = 5, repeats = 10, verboseIter = TRUE)
+        )
+
+I played with varying the variables and I noticed that some variables are used incorrectly by *caret* and/or *gbm*. Using a factor that has 4 levels according to the stock price at the end model date (&lt;1, 1-10, 10-100, &gt;100) did not work. The final model was incorrectly only assigning 3 *categories* (same as levels?) and I could not make it work. Furthermore, those categories were not relevant in the final model. Therefore, I decided to use **Price.Model.end** instead.
 
 The time horizon used in the following is 15 months in the future (from the data financial information is last available). The model was prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2016/09/30. The following results are obtained:
 
-```{}
-my_model$results
-    shrinkage interaction.depth n.minobsinnode n.trees     RMSE   Rsquared    RMSESD  RsquaredSD
-1         0.1                 1             10      50 58.57166 0.04230435 10.026998 0.042328721
-```
+    my_model$results
+        shrinkage interaction.depth n.minobsinnode n.trees     RMSE   Rsquared    RMSESD  RsquaredSD
+    1         0.1                 1             10      50 58.57166 0.04230435 10.026998 0.042328721
 
-Calculating the RMSE directly in the train and validation data sets result in 57.4 and 54.5 respectively. The same for method $ranger$ results in 30.4 and 54.3.  The RMSE results for method $glmnet$ are 57.3 and 50. The problem with $glmnet$ is that variable __SectorIndustry.Num__ is the most relevant variable by a large margin. All other variables seem to be irrelevant. Is this a problem with the method or with the way the model is built? By selecting the $gbm$ method, more variables matter. The important variables in $gbm$ are in the following table.
-
+Calculating the RMSE directly in the train and validation data sets result in 57.4 and 54.5 respectively. The same for method *r**a**n**g**e**r* results in 30.4 and 54.3. The RMSE results for method *g**l**m**n**e**t* are 57.3 and 50. The problem with *g**l**m**n**e**t* is that variable **SectorIndustry.Num** is the most relevant variable by a large margin. All other variables seem to be irrelevant. Is this a problem with the method or with the way the model is built? By selecting the *g**b**m* method, more variables matter. The important variables in *g**b**m* are in the following table.
 
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:26:31 2017 -->
-
-
+<!-- Mon Nov 20 16:07:01 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID42b53da293b3 () {
+function gvisDataTableID43f84a7db315 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -154,13 +192,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID42b53da293b3() {
-var data = gvisDataTableID42b53da293b3();
+function drawChartTableID43f84a7db315() {
+var data = gvisDataTableID43f84a7db315();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID42b53da293b3')
+    document.getElementById('TableID43f84a7db315')
     );
     chart.draw(data,options);
     
@@ -184,9 +222,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID42b53da293b3);
+callbacks.push(drawChartTableID43f84a7db315);
 })();
-function displayChartTableID42b53da293b3() {
+function displayChartTableID43f84a7db315() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -208,32 +246,23 @@ callbacks.shift()();
  
 // jsFooter
 </script>
- 
-<!-- jsChart -->  
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID42b53da293b3"></script>
- 
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43f84a7db315"></script>
 <!-- divChart -->
-  
-<div id="TableID42b53da293b3" 
-  style="width: 500; height: automatic;">
-</div>
 
-All other variables are not relevant (rel.inf = 0). __SectorIndustry.Num__ 134 and 133 are Gold and Industrial Metals & Minerals, respectively.
-The train data prediction compated to the actual return (in percentage) looks reasonable. Not only for the highest performers but also for the laggarts. The validation data also seems decent
+All other variables are not relevant (rel.inf = 0). **SectorIndustry.Num** 134 and 133 are Gold and Industrial Metals & Minerals, respectively. The train data prediction compated to the actual return (in percentage) looks reasonable. Not only for the highest performers but also for the laggarts. The validation data also seems decent
 
 ![](Figures/GBM.png)
 
 but there is a problem. These are the best 10 results in the validation data:
 
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:26:31 2017 -->
-
-
+<!-- Mon Nov 20 16:07:01 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID42b55d92d72b () {
+function gvisDataTableID43f8352b136a () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -505,13 +534,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID42b55d92d72b() {
-var data = gvisDataTableID42b55d92d72b();
+function drawChartTableID43f8352b136a() {
+var data = gvisDataTableID43f8352b136a();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID42b55d92d72b')
+    document.getElementById('TableID43f8352b136a')
     );
     chart.draw(data,options);
     
@@ -535,9 +564,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID42b55d92d72b);
+callbacks.push(drawChartTableID43f8352b136a);
 })();
-function displayChartTableID42b55d92d72b() {
+function displayChartTableID43f8352b136a() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -559,46 +588,69 @@ callbacks.shift()();
  
 // jsFooter
 </script>
- 
-<!-- jsChart -->  
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID42b55d92d72b"></script>
- 
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43f8352b136a"></script>
 <!-- divChart -->
-  
-<div id="TableID42b55d92d72b" 
-  style="width: 500; height: automatic;">
-</div>
 
-All of the top results are from __SectorIndustry.Num__ 134 (Gold).  If industries 134 and 133 are removed from the final results (but still keeping them in the model), the model results are much worse:
+All of the top results are from **SectorIndustry.Num** 134 (Gold). If industries 134 and 133 are removed from the final results (but still keeping them in the model), the model results are much worse:
 
 ![](Figures/GBM_no134-133.png)
 
-## Attempts 10-12: 
-Assuming the problem with the previous attempts were the chosen variables, variables were changed. Valuations valuations of a given stock 
-compared to other companies with the same Sector-industry-number were added:
+Attempts 10-12:
+---------------
 
-Variable                    |Meaning
-----------------------------|-------------------------------------------------------------------------------------------------------------
-Ev.earning.peers            |Enterprise value / earnings of the stock divided by its average value (stocks in the same sector-industry)
-Ev.ebitda.peers             |Enterprise value / EBITDA of the stock divided by its average value (stocks in the same sector-industry)
-Ev.book.peers               |Enterprise value / book value of the stock divided by its average value (stocks in the same sector-industry)
-Ev.revenue.peers            |Enterprise value / revenueof the stock divided by its average value (stocks in the same sector-industry)
-Ev.cash.peers               |Enterprise value / cash of the stock divided by its average value (stocks in the same sector-industry)
-Price.equity.debt.peers     |Stock price /(Total equity/ Total debt) of the stock divided by its average value (stocks in the same sector-industry)
+Assuming the problem with the previous attempts were the chosen variables, variables were changed. Valuations valuations of a given stock compared to other companies with the same Sector-industry-number were added:
 
-The variable __SectorIndustry.Num__ was removed since the sector performance over model training period is taken into account and it is likely that that performance will not be repeated in the future.
+<table>
+<colgroup>
+<col width="20%" />
+<col width="79%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ev.earning.peers</td>
+<td>Enterprise value / earnings of the stock divided by its average value (stocks in the same sector-industry)</td>
+</tr>
+<tr class="even">
+<td>Ev.ebitda.peers</td>
+<td>Enterprise value / EBITDA of the stock divided by its average value (stocks in the same sector-industry)</td>
+</tr>
+<tr class="odd">
+<td>Ev.book.peers</td>
+<td>Enterprise value / book value of the stock divided by its average value (stocks in the same sector-industry)</td>
+</tr>
+<tr class="even">
+<td>Ev.revenue.peers</td>
+<td>Enterprise value / revenueof the stock divided by its average value (stocks in the same sector-industry)</td>
+</tr>
+<tr class="odd">
+<td>Ev.cash.peers</td>
+<td>Enterprise value / cash of the stock divided by its average value (stocks in the same sector-industry)</td>
+</tr>
+<tr class="even">
+<td>Price.equity.debt.peers</td>
+<td>Stock price /(Total equity/ Total debt) of the stock divided by its average value (stocks in the same sector-industry)</td>
+</tr>
+</tbody>
+</table>
 
-The variables importance in a $gbm$ model are in the following table:
+The variable **SectorIndustry.Num** was removed since the sector performance over model training period is taken into account and it is likely that that performance will not be repeated in the future.
+
+The variables importance in a *g**b**m* model are in the following table:
 
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:26:31 2017 -->
-
-
+<!-- Mon Nov 20 16:07:01 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID42b5307aaf1f () {
+function gvisDataTableID43f84b8146cb () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -662,13 +714,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID42b5307aaf1f() {
-var data = gvisDataTableID42b5307aaf1f();
+function drawChartTableID43f84b8146cb() {
+var data = gvisDataTableID43f84b8146cb();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID42b5307aaf1f')
+    document.getElementById('TableID43f84b8146cb')
     );
     chart.draw(data,options);
     
@@ -692,9 +744,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID42b5307aaf1f);
+callbacks.push(drawChartTableID43f84b8146cb);
 })();
-function displayChartTableID42b5307aaf1f() {
+function displayChartTableID43f84b8146cb() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -716,108 +768,103 @@ callbacks.shift()();
  
 // jsFooter
 </script>
- 
-<!-- jsChart -->  
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID42b5307aaf1f"></script>
- 
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43f84b8146cb"></script>
 <!-- divChart -->
-  
-<div id="TableID42b5307aaf1f" 
-  style="width: 500; height: automatic;">
-</div>
 
 Calculating the RMSE directly in the train and validation data sets result in 56.1 and 59.4 respectively. Those numbers are slightly worse than during attempts 1-10 but the results and the relative importance of the variables look better.
 
 ![](Figures/GBM_model2.png)
 
-The random forest model $ranger$ results in 26.9 and 57.6 for the RMSE in train and validation data respectively:
+The random forest model *r**a**n**g**e**r* results in 26.9 and 57.6 for the RMSE in train and validation data respectively:
 
 ![](Figures/ranger_model2.png)
 
-The linear regression model $glmnet$ performs badly and results in an RMSE in the validation data larger than a 100.
+The linear regression model *g**l**m**n**e**t* performs badly and results in an RMSE in the validation data larger than a 100.
 
-## Attempts 12-15: 
+Attempts 12-15:
+---------------
 
 Changes from previous attempts:
 
-* Variables added:
-      + Simple moving average variable (over 200 days) and comparison with its peers.
-      + Simple moving average variable (over 50 days) and comparison with its peers.
-      + ARIMA forecast prediction.
-      + Relative Strength Index RSI over 10 days: it expresses the fraction of gains and losses over the past lookback periods, 100 - (100/(1 + RS)), where RS is the average gain over the average loss over the lookback window decided.
-      + Relative Strength Index RSI over 50 days.
-      + Value representing the percentage rank of the stock price between the lowest and highest stock price during the last 2 years. 
-* Changed varibles calculating the stock price over the lowest (and highest) stock price during the last 2 years to a calculation that uses daily stock prices instead of monthly stock prices.
-* Corrections:
-      + Holt-Winters prediction and its lower bound with 90% confidence were calculated with a time horizon incorrectly calculated (it was 1 month too long).
-      + Stock price at end.model.date was incorrectly taken one month later. This affected all variables involving this price. 
-      
+-   Variables added:
+    -   Simple moving average variable (over 200 days) and comparison with its peers.
+    -   Simple moving average variable (over 50 days) and comparison with its peers.
+    -   ARIMA forecast prediction.
+    -   Relative Strength Index RSI over 10 days: it expresses the fraction of gains and losses over the past lookback periods, 100 - (100/(1 + RS)), where RS is the average gain over the average loss over the lookback window decided.
+    -   Relative Strength Index RSI over 50 days.
+    -   Value representing the percentage rank of the stock price between the lowest and highest stock price during the last 2 years.
+-   Changed varibles calculating the stock price over the lowest (and highest) stock price during the last 2 years to a calculation that uses daily stock prices instead of monthly stock prices.
+-   Corrections:
+    -   Holt-Winters prediction and its lower bound with 90% confidence were calculated with a time horizon incorrectly calculated (it was 1 month too long).
+    -   Stock price at end.model.date was incorrectly taken one month later. This affected all variables involving this price.
+
 In the previous attempts and these ones too, the calculated RMEs are highly variable depending on the splitting between training and testing data. This observation is independent of the method used:
 
 ![](Figures/ranger_gbm.png)
 
-The relative importance of the variables also changes but not as much (most of the time). This is a particular example for the $ranger$ method:
+The relative importance of the variables also changes but not as much (most of the time). This is a particular example for the *r**a**n**g**e**r* method:
 
-![](Figures/ranger3_varImp.png)     
+![](Figures/ranger3_varImp.png)
 
-The train data is over-fitted with the $ranger$ method but the validation data modeling is not worse than using the $gbm$ (or any other method) method. One of the main takeaways so far is that despite adding more and more variables, the effectiveness of the model, as measured by the RMS value, has not improved much from the first attempts.  
+The train data is over-fitted with the *r**a**n**g**e**r* method but the validation data modeling is not worse than using the *g**b**m* (or any other method) method. One of the main takeaways so far is that despite adding more and more variables, the effectiveness of the model, as measured by the RMS value, has not improved much from the first attempts.
 
-## Changing time horizon:
+Changing time horizon:
+----------------------
 
 Using a time horizon of 3 months, the results get better:
 
 ![](Figures/ranger_gbm_timeHorizon3.png)
 
-The relative importance of the different variables also change. Enterprise value (stock price * number of shares) variables become more relevant. 
+The relative importance of the different variables also change. Enterprise value (stock price \* number of shares) variables become more relevant.
 
-![](Figures/ranger4_varImp.png) 
+![](Figures/ranger4_varImp.png)
 
-For the $gbm$ method, this is what the predictions look like:
+For the *g**b**m* method, this is what the predictions look like:
 
 ![](Figures/GBM_timeHorizon3.png)
 
-## Eliminating quaterly variables (assets, equity, etc.):
+Eliminating quaterly variables (assets, equity, etc.):
+------------------------------------------------------
 
 By leaving only stock price variables and eliminating all quaterly variables the RMS results do not change dramatically:
 
 ![](Figures/ranger_gbm_timeHorizon3_redVar.png)
 
-For the $gbm$ method, this is what the predictions look like:
+For the *g**b**m* method, this is what the predictions look like:
 
 ![](Figures/GBM_timeHorizon3_redVar.png)
 
-## Robustness of the model:
+Robustness of the model:
+------------------------
 
-This is how the ranking of predictions compare between methods $gbm$ and $ranger$:
+This is how the ranking of predictions compare between methods *g**b**m* and *r**a**n**g**e**r*:
 
 ![](Figures/ranger_gbm_robust_3.png)
 
-Notice how there are some companies that have a high rank in one of the methods but not in both. There are also some companies highly ranked in both methods. The colors indicate the ranking based on actual/win losses. Notice that there are more high ranking (high gains) companies in the top right corner than in the bottom left corner. However, the correlation between model ranking and actual win/loss ranking is not great: 
+Notice how there are some companies that have a high rank in one of the methods but not in both. There are also some companies highly ranked in both methods. The colors indicate the ranking based on actual/win losses. Notice that there are more high ranking (high gains) companies in the top right corner than in the bottom left corner. However, the correlation between model ranking and actual win/loss ranking is not great:
 
 ![](Figures/ranger_actual_robust_3.png)
 
-The last figure should show a linear correlation if the model were perfect. As it, there is still a lot of room for improvement. Adding quaterly variables does not improve the figure much. Therefore they are removed again for the following results. 
+The last figure should show a linear correlation if the model were perfect. As it, there is still a lot of room for improvement. Adding quaterly variables does not improve the figure much. Therefore they are removed again for the following results.
 
 ![](Figures/ranger_actual_robust_3_quaterly.png)
 
-The correlation between results using $glmnet$ and $ranger$ is not as clean, but that could actually be better since companies with high rankings in both methods also seem to have good rankings in the actual win/loss ranking.
+The correlation between results using *g**l**m**n**e**t* and *r**a**n**g**e**r* is not as clean, but that could actually be better since companies with high rankings in both methods also seem to have good rankings in the actual win/loss ranking.
 
 ![](Figures/ranger_glmnet_robust_3.png)
 
-I also tested the robustness of using the $ranger$ method using different train data. The resulting graph is very similar to the one comparing different methods. 
+I also tested the robustness of using the *r**a**n**g**e**r* method using different train data. The resulting graph is very similar to the one comparing different methods.
 
-Requiring a rank in methods $ranger$, $gbm$ and $glmnet$ above 90%, the following companies are the ones recommended by the model (prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2015/09/30): 
-
+Requiring a rank in methods *r**a**n**g**e**r*, *g**b**m* and *g**l**m**n**e**t* above 90%, the following companies are the ones recommended by the model (prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2015/09/30):
 
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:26:31 2017 -->
-
-
+<!-- Mon Nov 20 16:07:01 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID42b57971d97b () {
+function gvisDataTableID43f8504fb3f4 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -849,13 +896,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID42b57971d97b() {
-var data = gvisDataTableID42b57971d97b();
+function drawChartTableID43f8504fb3f4() {
+var data = gvisDataTableID43f8504fb3f4();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID42b57971d97b')
+    document.getElementById('TableID43f8504fb3f4')
     );
     chart.draw(data,options);
     
@@ -879,9 +926,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID42b57971d97b);
+callbacks.push(drawChartTableID43f8504fb3f4);
 })();
-function displayChartTableID42b57971d97b() {
+function displayChartTableID43f8504fb3f4() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -903,28 +950,19 @@ callbacks.shift()();
  
 // jsFooter
 </script>
- 
-<!-- jsChart -->  
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID42b57971d97b"></script>
- 
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43f8504fb3f4"></script>
 <!-- divChart -->
-  
-<div id="TableID42b57971d97b" 
-  style="width: 500; height: automatic;">
-</div>
 
-Using the same model but for data from 2013/09/03 to 2015/09/30 for a prediction at 2015/12/31 results in RMS of 34 for $ranger$ and $gbm$ methods. Method $glmnet$ has an outlier that makes the RMS blow up. These are the companies with the highest actual ranking and their method rankings:
-
+Using the same model but for data from 2013/09/03 to 2015/09/30 for a prediction at 2015/12/31 results in RMS of 34 for *r**a**n**g**e**r* and *g**b**m* methods. Method *g**l**m**n**e**t* has an outlier that makes the RMS blow up. These are the companies with the highest actual ranking and their method rankings:
 
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:26:31 2017 -->
-
-
+<!-- Mon Nov 20 16:07:01 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID42b56250a523 () {
+function gvisDataTableID43f8927f32 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1020,13 +1058,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID42b56250a523() {
-var data = gvisDataTableID42b56250a523();
+function drawChartTableID43f8927f32() {
+var data = gvisDataTableID43f8927f32();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID42b56250a523')
+    document.getElementById('TableID43f8927f32')
     );
     chart.draw(data,options);
     
@@ -1050,9 +1088,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID42b56250a523);
+callbacks.push(drawChartTableID43f8927f32);
 })();
-function displayChartTableID42b56250a523() {
+function displayChartTableID43f8927f32() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1074,28 +1112,19 @@ callbacks.shift()();
  
 // jsFooter
 </script>
- 
-<!-- jsChart -->  
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID42b56250a523"></script>
- 
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43f8927f32"></script>
 <!-- divChart -->
-  
-<div id="TableID42b56250a523" 
-  style="width: 500; height: automatic;">
-</div>
 
-None of the methods is particularly good. It seems that the assumption that a model created and optimized at an earlier time (3 months in this case) is not completely valid by the time it has to be used. However some of the model is still useful. Requiring an average rank in methods $ranger$, $gbm$ and $glmnet$ above 95.5%, results in companies:
-
+None of the methods is particularly good. It seems that the assumption that a model created and optimized at an earlier time (3 months in this case) is not completely valid by the time it has to be used. However some of the model is still useful. Requiring an average rank in methods *r**a**n**g**e**r*, *g**b**m* and *g**l**m**n**e**t* above 95.5%, results in companies:
 
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:26:31 2017 -->
-
-
+<!-- Mon Nov 20 16:07:01 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID42b57b9e0e94 () {
+function gvisDataTableID43f816d01aff () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1159,13 +1188,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID42b57b9e0e94() {
-var data = gvisDataTableID42b57b9e0e94();
+function drawChartTableID43f816d01aff() {
+var data = gvisDataTableID43f816d01aff();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID42b57b9e0e94')
+    document.getElementById('TableID43f816d01aff')
     );
     chart.draw(data,options);
     
@@ -1189,9 +1218,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID42b57b9e0e94);
+callbacks.push(drawChartTableID43f816d01aff);
 })();
-function displayChartTableID42b57b9e0e94() {
+function displayChartTableID43f816d01aff() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1213,15 +1242,9 @@ callbacks.shift()();
  
 // jsFooter
 </script>
- 
-<!-- jsChart -->  
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID42b57b9e0e94"></script>
- 
+<!-- jsChart -->
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43f816d01aff"></script>
 <!-- divChart -->
-  
-<div id="TableID42b57b9e0e94" 
-  style="width: 500; height: automatic;">
-</div>
 
 which have an average actual win loss percentage of 4.6% while the average of all the companies considered is 0.7%. When adding quaterly variables the average actual win loss percentage is 7.5%.
 
@@ -1231,6 +1254,10 @@ Tried subsetting the data to specific price categories and/or assets and the mod
 
 To be continued ....
 
-# To do
-* Add/replace variables:
-      + Add a google trend variables (stock and sector).
+To do
+=====
+
+-   Add/replace variables:
+    -   Add a google trend variables (stock and sector).
+
+[1] The *g**b**m* method does not work correctly if train.fraction is not defined explicitely.

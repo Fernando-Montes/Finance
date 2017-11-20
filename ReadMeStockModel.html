@@ -228,12 +228,12 @@ $(document).ready(function () {
 1         0.1                 1             10      50 58.57166 0.04230435 10.026998 0.042328721</code></pre>
 <p>Calculating the RMSE directly in the train and validation data sets result in 57.4 and 54.5 respectively. The same for method <span class="math inline">\(ranger\)</span> results in 30.4 and 54.3. The RMSE results for method <span class="math inline">\(glmnet\)</span> are 57.3 and 50. The problem with <span class="math inline">\(glmnet\)</span> is that variable <strong>SectorIndustry.Num</strong> is the most relevant variable by a large margin. All other variables seem to be irrelevant. Is this a problem with the method or with the way the model is built? By selecting the <span class="math inline">\(gbm\)</span> method, more variables matter. The important variables in <span class="math inline">\(gbm\)</span> are in the following table.</p>
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:27:12 2017 -->
+<!-- Mon Nov 20 15:52:53 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID43213a8313b5 () {
+function gvisDataTableID43c779d97000 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -297,13 +297,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID43213a8313b5() {
-var data = gvisDataTableID43213a8313b5();
+function drawChartTableID43c779d97000() {
+var data = gvisDataTableID43c779d97000();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID43213a8313b5')
+    document.getElementById('TableID43c779d97000')
     );
     chart.draw(data,options);
     
@@ -327,9 +327,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID43213a8313b5);
+callbacks.push(drawChartTableID43c779d97000);
 })();
-function displayChartTableID43213a8313b5() {
+function displayChartTableID43c779d97000() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -352,9 +352,9 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43213a8313b5"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43c779d97000"></script>
 <!-- divChart -->
-<div id="TableID43213a8313b5" style="width: 500; height: automatic;">
+<div id="TableID43c779d97000" style="width: 500; height: automatic;">
 
 </div>
 <p>All other variables are not relevant (rel.inf = 0). <strong>SectorIndustry.Num</strong> 134 and 133 are Gold and Industrial Metals &amp; Minerals, respectively. The train data prediction compated to the actual return (in percentage) looks reasonable. Not only for the highest performers but also for the laggarts. The validation data also seems decent</p>
@@ -364,12 +364,12 @@ callbacks.shift()();
 </div>
 <p>but there is a problem. These are the best 10 results in the validation data:</p>
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:27:12 2017 -->
+<!-- Mon Nov 20 15:52:53 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID43214cf2959e () {
+function gvisDataTableID43c74ca1dd69 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -641,13 +641,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID43214cf2959e() {
-var data = gvisDataTableID43214cf2959e();
+function drawChartTableID43c74ca1dd69() {
+var data = gvisDataTableID43c74ca1dd69();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID43214cf2959e')
+    document.getElementById('TableID43c74ca1dd69')
     );
     chart.draw(data,options);
     
@@ -671,9 +671,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID43214cf2959e);
+callbacks.push(drawChartTableID43c74ca1dd69);
 })();
-function displayChartTableID43214cf2959e() {
+function displayChartTableID43c74ca1dd69() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -696,9 +696,9 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43214cf2959e"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43c74ca1dd69"></script>
 <!-- divChart -->
-<div id="TableID43214cf2959e" style="width: 500; height: automatic;">
+<div id="TableID43c74ca1dd69" style="width: 500; height: automatic;">
 
 </div>
 <p>All of the top results are from <strong>SectorIndustry.Num</strong> 134 (Gold). If industries 134 and 133 are removed from the final results (but still keeping them in the model), the model results are much worse:</p>
@@ -751,12 +751,12 @@ callbacks.shift()();
 <p>The variable <strong>SectorIndustry.Num</strong> was removed since the sector performance over model training period is taken into account and it is likely that that performance will not be repeated in the future.</p>
 <p>The variables importance in a <span class="math inline">\(gbm\)</span> model are in the following table:</p>
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:27:12 2017 -->
+<!-- Mon Nov 20 15:52:53 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID4321243d55df () {
+function gvisDataTableID43c715ed96f6 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -820,13 +820,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID4321243d55df() {
-var data = gvisDataTableID4321243d55df();
+function drawChartTableID43c715ed96f6() {
+var data = gvisDataTableID43c715ed96f6();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID4321243d55df')
+    document.getElementById('TableID43c715ed96f6')
     );
     chart.draw(data,options);
     
@@ -850,9 +850,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID4321243d55df);
+callbacks.push(drawChartTableID43c715ed96f6);
 })();
-function displayChartTableID4321243d55df() {
+function displayChartTableID43c715ed96f6() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -875,9 +875,9 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID4321243d55df"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43c715ed96f6"></script>
 <!-- divChart -->
-<div id="TableID4321243d55df" style="width: 500; height: automatic;">
+<div id="TableID43c715ed96f6" style="width: 500; height: automatic;">
 
 </div>
 <p>Calculating the RMSE directly in the train and validation data sets result in 56.1 and 59.4 respectively. Those numbers are slightly worse than during attempts 1-10 but the results and the relative importance of the variables look better.</p>
@@ -980,12 +980,12 @@ callbacks.shift()();
 <p>I also tested the robustness of using the <span class="math inline">\(ranger\)</span> method using different train data. The resulting graph is very similar to the one comparing different methods.</p>
 <p>Requiring a rank in methods <span class="math inline">\(ranger\)</span>, <span class="math inline">\(gbm\)</span> and <span class="math inline">\(glmnet\)</span> above 90%, the following companies are the ones recommended by the model (prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2015/09/30):</p>
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:27:12 2017 -->
+<!-- Mon Nov 20 15:52:53 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID4321b7a9f0f () {
+function gvisDataTableID43c7723de708 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1017,13 +1017,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID4321b7a9f0f() {
-var data = gvisDataTableID4321b7a9f0f();
+function drawChartTableID43c7723de708() {
+var data = gvisDataTableID43c7723de708();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID4321b7a9f0f')
+    document.getElementById('TableID43c7723de708')
     );
     chart.draw(data,options);
     
@@ -1047,9 +1047,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID4321b7a9f0f);
+callbacks.push(drawChartTableID43c7723de708);
 })();
-function displayChartTableID4321b7a9f0f() {
+function displayChartTableID43c7723de708() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1072,19 +1072,19 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID4321b7a9f0f"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43c7723de708"></script>
 <!-- divChart -->
-<div id="TableID4321b7a9f0f" style="width: 500; height: automatic;">
+<div id="TableID43c7723de708" style="width: 500; height: automatic;">
 
 </div>
 <p>Using the same model but for data from 2013/09/03 to 2015/09/30 for a prediction at 2015/12/31 results in RMS of 34 for <span class="math inline">\(ranger\)</span> and <span class="math inline">\(gbm\)</span> methods. Method <span class="math inline">\(glmnet\)</span> has an outlier that makes the RMS blow up. These are the companies with the highest actual ranking and their method rankings:</p>
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:27:12 2017 -->
+<!-- Mon Nov 20 15:52:53 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID43217a3457d1 () {
+function gvisDataTableID43c76abc91d3 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1180,13 +1180,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID43217a3457d1() {
-var data = gvisDataTableID43217a3457d1();
+function drawChartTableID43c76abc91d3() {
+var data = gvisDataTableID43c76abc91d3();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID43217a3457d1')
+    document.getElementById('TableID43c76abc91d3')
     );
     chart.draw(data,options);
     
@@ -1210,9 +1210,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID43217a3457d1);
+callbacks.push(drawChartTableID43c76abc91d3);
 })();
-function displayChartTableID43217a3457d1() {
+function displayChartTableID43c76abc91d3() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1235,19 +1235,19 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43217a3457d1"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43c76abc91d3"></script>
 <!-- divChart -->
-<div id="TableID43217a3457d1" style="width: 500; height: automatic;">
+<div id="TableID43c76abc91d3" style="width: 500; height: automatic;">
 
 </div>
 <p>None of the methods is particularly good. It seems that the assumption that a model created and optimized at an earlier time (3 months in this case) is not completely valid by the time it has to be used. However some of the model is still useful. Requiring an average rank in methods <span class="math inline">\(ranger\)</span>, <span class="math inline">\(gbm\)</span> and <span class="math inline">\(glmnet\)</span> above 95.5%, results in companies:</p>
 <!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Mon Nov 20 15:27:12 2017 -->
+<!-- Mon Nov 20 15:52:53 2017 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID4321441c79e1 () {
+function gvisDataTableID43c75a4cf6f4 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1311,13 +1311,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID4321441c79e1() {
-var data = gvisDataTableID4321441c79e1();
+function drawChartTableID43c75a4cf6f4() {
+var data = gvisDataTableID43c75a4cf6f4();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID4321441c79e1')
+    document.getElementById('TableID43c75a4cf6f4')
     );
     chart.draw(data,options);
     
@@ -1341,9 +1341,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID4321441c79e1);
+callbacks.push(drawChartTableID43c75a4cf6f4);
 })();
-function displayChartTableID4321441c79e1() {
+function displayChartTableID43c75a4cf6f4() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1366,9 +1366,9 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID4321441c79e1"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID43c75a4cf6f4"></script>
 <!-- divChart -->
-<div id="TableID4321441c79e1" style="width: 500; height: automatic;">
+<div id="TableID43c75a4cf6f4" style="width: 500; height: automatic;">
 
 </div>
 <p>which have an average actual win loss percentage of 4.6% while the average of all the companies considered is 0.7%. When adding quaterly variables the average actual win loss percentage is 7.5%.</p>

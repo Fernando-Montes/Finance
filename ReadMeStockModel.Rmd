@@ -1,9 +1,11 @@
 ---
 title: "Stock Model"
 output:
+  md_document:
+    variant: markdown_github
+  pdf_document: default
   html_document: 
     self_contained: no
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -111,6 +113,7 @@ Calculating the RMSE directly in the train and validation data sets result in 57
 suppressPackageStartupMessages(library(googleVis))
 ```
 ```{r results='asis', echo=FALSE}
+options(gvis.plot.tag = 'chart')
 load(file = "~/Dropbox/Courses/R/StockModel-I/Figures/imp_par.Rda")
 tab1 <- gvisTable(head(imp_par, 13))
 print(tab1, "chart")
