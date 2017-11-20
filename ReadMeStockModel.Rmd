@@ -1,6 +1,9 @@
 ---
 title: "Stock Model"
-output: html_document
+output:
+  html_document: 
+    self_contained: no
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
