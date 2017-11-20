@@ -13,6 +13,7 @@
 # stock price at end.date.model
 # stock price category at end.date.model
 # Total assets at end.date.model 
+# Enterprise value (EV) at end.date.model 
 # EV/earnings at end.date.model
 # EV/EBITDA at end.date.model
 # EV/book value at end.date.model
@@ -30,8 +31,10 @@
 
 add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date.model) {
   
-  targetPath1 <- "~/Dropbox/Courses/R/Finance/Downloads/"
-  targetPath2 <- "~/Dropbox/Courses/R/Finance/Downloads2/"
+  # targetPath1 <- "~/Dropbox/Courses/R/StockModel-I/Downloads_2016/"
+  # targetPath2 <- "~/Dropbox/Courses/R/StockModel-I/Downloads2_2016/"
+  targetPath1 <- "~/Dropbox/Courses/R/StockModel-I/Downloads_2017Aug/"
+  targetPath2 <- "~/Dropbox/Courses/R/StockModel-I/Downloads_2017Aug/"
   
   # Loading historical stock price data into SYMB_prices
   fileName <- paste(targetPath2, stock, "-prices.RData", sep="")
@@ -42,8 +45,8 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
   load(file = fileName)
   
   # Checking the dates are right and they exist
-  if ( length(SYMB_prices[end.date.model,])==1 & length(SYMB_prices[ini.date.model,])==1
-       & length(SYMB_prices[apply.date.model,])==1 ) {
+  if ( length(SYMB_prices[end.date.model,])==1 & length(SYMB_prices[ini.date.model,])==1 ) {
+      # & length(SYMB_prices[apply.date.model,])==1 ) {
       
       # Income statement
       FinIS <- viewFin(FinStock, period = 'Q', "IS")
@@ -104,6 +107,7 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
         # Price.equity.debt = price/Total Equity (FinBS)/Total Debt (Fin BS)
         Price.equity.debt <- ifelse(FinBS["Total Debt",numBS] != 0 & FinBS["Total Equity",numBS] != 0, 
                                     price*FinBS["Total Debt",numBS]/FinBS["Total Equity",numBS], NA)
+        SYMB_prices <- na.approx(SYMB_prices) # in case there are NA values use interpolation
         # prediction for current stock price and lower bound prediction for current stock price
         prediction.forecast <- Forecasting.ts(SYMB_prices, end.date.model, apply.date.model)
         # Holt-Winters prediction for current stock price
@@ -130,13 +134,19 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
                                         which(index(SYMB_prices) == index(SYMB_prices[end.date.model,])) ]
         dvo <- runPercentRank(SYMB_prices_red, n = length(SYMB_prices_red), exact.multiplier = 1)[end.date.model] * 100
         
+        if ( length(SYMB_prices[apply.date.model,1]) == 0 )  { # no stock information at prediction date
+          price.apply.date.model = 0 # arbitrary number
+        }
+        else price.apply.date.model = SYMB_prices[apply.date.model,1] # stock information at prediction date
+        
         return( list(stock,                            # stock symbol
-                     SYMB_prices[apply.date.model,1],  # current stock price
+                     price.apply.date.model,           # current stock price
                      Price.Min,                        # lowest stock price from end.date.model-months.min to end.date.model 
                      Price.Max,                        # highest stock price from end.date.model-months.min to end.date.model
                      price,                            # stock price at end.date.model
                      Price.Category,                   # stock price category at end.date.model
                      Assets,                           # Total assets at end.date.model 
+                     ev,                               # Enterprise value at end.date.model 
                      Ev.earning,                       # EV/earnings at end.date.model
                      Ev.ebitda,                        # EV/EBITDA at end.date.model
                      Ev.book,                          # EV/book value at end.date.model
@@ -326,47 +336,3 @@ daily2endMonth <- function(daily.series) {
   return(month.series)
 }
 
-
-
-
-
-# ADDITIONAL NOT CURRENTLY USED  
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# Places to obtain financial data
-
-# Interesting site
-# http://finance-r.com/
-
-# http://www.wikinvest.com/stock/Microsoft_(MSFT)/Data/Income_Statement
-# fernandoamontes@gmail.com
-# oabecobacd
-# iugilbuiwgwwew4
-
-# https://www.estimize.com
-#fernandoamontes@gmail.com
-#sxashsbkhjflkurt3
-
-# http://www.valueuncovered.com/stock-research-10-year-historical-financial-statements
-# https://www.quora.com/Which-web-site-gives-the-previous-10-years-earnings-of-a-public-company
-# http://ycharts.com/financials/AAPL/income_statement/annual
-
-# http://financials.morningstar.com/ratios/r.html?t=QAN&region=aus&culture=en-US
-# http://financials.morningstar.com/valuation/price-ratio.html?t=00670&region=hkg&culture=en-US
-# http://financials.morningstar.com/ajax/exportKR2CSV.html?&t=GOOG
-
-# Yahoo API
-# http://stackoverflow.com/questions/38567661/how-to-get-key-statistics-for-yahoo-finance-web-search-api
-
-# Obtaining information from
-# http://financials.morningstar.com/ratios/r.html?t=QAN&region=aus&culture=en-US
-
-# TenYearSummary <- read.csv2(paste0("http://financials.morningstar.com/ratios/r.html?t=", 
-#                                    stock, "&region=usa&culture=en-US")) 
-# test <- readHTMLTable(paste0("http://financials.morningstar.com/ratios/r.html?t=", 
-#                              stock, "&region=usa&culture=en-US"))
-# 
-# TenYearSummary <- read.csv2(paste0("http://financials.morningstar.com//ajax/exportKR2CSV.html?&t=", 
-#                                    stock)) 
-# write.csv(TenYearSummary, paste0("/Users/fernandomontes/Dropbox/Courses/R/Finance/Financials/",stock), row.names=T)

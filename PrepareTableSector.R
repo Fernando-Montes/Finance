@@ -14,7 +14,7 @@
 
 prepare.table.sector <- function(table) {
   
-  # Adding columns to table and initisializing to zero
+  # Adding columns to table and initializing to zero
   table$Ev.earning.peers =        as.numeric(table$Ev.earning*0.)
   table$Ev.ebitda.peers =         as.numeric(table$Ev.earning.peers)
   table$Ev.book.peers =           as.numeric(table$Ev.earning.peers)

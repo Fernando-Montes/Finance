@@ -5,9 +5,6 @@
 # It uses saved info that has been previously created by running Download.R
 # ----------------------------------------------------------
 
-# Finance packages available in R:
-# https://cran.r-project.org/web/views/Finance.html
-
 # Load relevant packages
 library(quantmod)
 library(PerformanceAnalytics)
@@ -22,24 +19,27 @@ registerDoParallel(cores=4)
 
 # Loading info to be used ----------------------------------------
 # Load data frame with Sector.Name, Sector.Num, Industry.Name, Industry.Num into listAll
-load(file = "~/Dropbox/Courses/R/Finance/Downloads/SectorIndustryInfo.RData")
+load(file = "~/Dropbox/Courses/R/StockModel-I/SectorIndustryInfo.RData")
 # Load stock, sector and industry information into StockInfo
-load(file = "~/Dropbox/Courses/R/Finance/Downloads/StockInfo.RData")
+load(file = "~/Dropbox/Courses/R/StockModel-I/Downloads_2017Aug/StockInfo.RData")
 
 # Sourcing functions ----------------------------------------------
-source('~/Dropbox/Courses/R/Finance/PrepareTable.R')
+source('~/Dropbox/Courses/R/StockModel-I/PrepareTable.R')
 # Sourcing prepare.table.sector function
-source('~/Dropbox/Courses/R/Finance/PrepareTableSector.R')
+source('~/Dropbox/Courses/R/StockModel-I/PrepareTableSector.R')
+# Sourcing add.histo.to.table function
+source('~/Dropbox/Courses/R/StockModel-I/StockInfoHistorical.R')
 # Sourcing prepare.model function
-source('~/Dropbox/Courses/R/Finance/PrepareStockModel.R')
+source('~/Dropbox/Courses/R/StockModel-I/PrepareStockModel.R')
 
 # Creating table to be used to create model -----------------------
 
 # The model will be trained up to end.date.model. This date is currently set by earliest financial
 # quaterly data from google financial
 ini.date.model <- as.Date("2014/03/03")   # Initial date the model is prepared
-end.date.model <- as.Date("2016/03/31")   # Final date the model is prepared -- should be end of month
-apply.date.model <- as.Date("2016/06/30") # Date the model is designed to predict win/loss performance -- should be end of month
+histo.date.model <- as.Date("2016/03/31")   # date the model is compared to historical info (year earlier than end.date.model?)
+end.date.model <- as.Date("2017/03/31")   # Final date the model is prepared -- should be end of month
+apply.date.model <- as.Date("2017/06/30") # Date the model is designed to predict win/loss performance -- should be end of month
 
 # Prepare table with stock info
 table.model <- prepare.table(stockInfo, end.date.model, ini.date.model, apply.date.model)
@@ -47,9 +47,11 @@ table.model <- prepare.table(stockInfo, end.date.model, ini.date.model, apply.da
 table.model <- table.model[table.model$Price.Model.end > 0.01 & table.model$Price.Min > 0.01,]
 # Adding to table valuations compared to peers
 table.model <- prepare.table.sector(table.model) 
+# Adding historical financial status comparison
+table.model <- add.histo.to.table(table.model, histo.date.model)
 # Saving table.model
-save(table.model, file = "~/Dropbox/Courses/R/Finance/Figures/Table-3m_2016-06-30.Rda")
-load("~/Dropbox/Courses/R/Finance/Figures/Table-3m_2016-06-30.Rda") # loads table.model
+save(table.model, file = "~/Dropbox/Courses/R/StockModel-I/Figures/Table-3m_2017-06-30.Rda")
+load("~/Dropbox/Courses/R/StockModel-I/Figures/Table-3m_2017-06-30.Rda") # loads table.model
 
 # Trying things
 # table.model <- table.model[table.model$Price.Category == "3",]
@@ -98,10 +100,16 @@ for (i in 1:length(ordered_ranger$Stock.SYM)) {
                           ordered_ranger$actual.win.loss[i])                                                                   #Actual win-loss
 }
 # rank.robust <- na.exclude(rank.robust)
+ggplot(rank.robust, aes(x=rank_ranger, y=rank_gbm, color=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
+  labs(title='gbm vs Ranger')+ xlab("Ranger rank [%]") + ylab("gbm rank [%]") + 
+  xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
 ggplot(rank.robust, aes(x=rank_ranger, y=rank_glmnet, color=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
   labs(title='glmnet vs Ranger')+ xlab("Ranger rank [%]") + ylab("glmnet rank [%]") + 
   xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
 ggplot(rank.robust, aes(x=((rank_ranger+rank_gbm+rank_glmnet)/3), y=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
+  labs(title='Actual vs Average rank pred.')+ xlab("Average rank [%]") + ylab("Actual rank [%]") + 
+  xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
+ggplot(rank.robust, aes(x=((rank_ranger+rank_gbm)/2), y=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
   labs(title='Actual vs Average rank pred.')+ xlab("Average rank [%]") + ylab("Actual rank [%]") + 
   xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
 
@@ -170,11 +178,14 @@ ggplot(my_val,
   labs(title='Actual.win.loss vs Pred.win.loss')+ xlab("Pred.win.loss") + ylab("Actual.win.loss") + 
   xlim(c(-30, 50)) + ylim(c(-50, 100)) + coord_fixed(ratio=0.9)  
 
+# ----------------------------------------------------------------
 # Using the stock model to make a recommendation -----------------
+# ----------------------------------------------------------------
 
-ini.date.model <- as.Date("2014/06/03")   # Initial date the model is prepared
-end.date.model <- as.Date("2016/06/30")   # Final date the model is prepared -- should be end of month
-apply.date.model <- as.Date("2016/09/30") # Date the model is designed to predict win/loss performance -- should be end of month
+ini.date.model <- as.Date("2014/03/03")   # Initial date the model is prepared
+histo.date.model <- as.Date("2016/06/30")   # date the model is compared to historical info (year earlier than end.date.model?)
+end.date.model <- as.Date("2017/06/30")   # Final date the model is prepared -- should be end of month
+apply.date.model <- as.Date("2017/09/30") # Date the model is designed to predict win/loss performance -- should be end of month
 
 # Prepare table with stock info
 table.pred <- prepare.table(stockInfo, end.date.model, ini.date.model, apply.date.model)
@@ -182,8 +193,10 @@ table.pred <- prepare.table(stockInfo, end.date.model, ini.date.model, apply.dat
 table.pred <- table.pred[table.pred$Price.Model.end > 0.01 & table.pred$Price.Min > 0.01,]
 # Adding to table valuations compared to peers
 table.pred <- prepare.table.sector(table.pred) 
+# Adding historical financial status comparison
+table.pred <- add.histo.to.table(table.pred, histo.date.model)
 # Saving table.pred
-save(table.pred, file = "~/Dropbox/Courses/R/Finance/Figures/Table-3m_2016-09-30.Rda")
+save(table.pred, file = "~/Dropbox/Courses/R/StockModel-I/Figures/Table-3m_2017-09-30.Rda")
 
 # Using created model to make predictions
 table.pred$ranger_pred <- predict(model_ranger, table.pred)
@@ -206,16 +219,16 @@ for (i in 1:length(ordered_ranger$Stock.SYM)) {
                         ordered_ranger$actual.win.loss[i])                                                                   #Actual win-loss
 }
 # rank.robust <- na.exclude(rank.robust)
-ggplot(rank.pred, aes(x=rank_ranger, y=rank_glmnet, color=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
-  labs(title='GLMNET vs Ranger')+ xlab("Ranger rank [%]") + ylab("GLMNET rank [%]") + 
-  xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
-ggplot(rank.pred, aes(x=((rank_ranger+rank_gbm+rank_glmnet)/3), y=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
-  labs(title='Actual vs Av. rank pred.')+ xlab("Average rank [%]") + ylab("Actual rank [%]") + 
-  xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
+# ggplot(rank.pred, aes(x=rank_ranger, y=rank_glmnet, color=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
+#   labs(title='GLMNET vs Ranger')+ xlab("Ranger rank [%]") + ylab("GLMNET rank [%]") + 
+#   xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
+# ggplot(rank.pred, aes(x=((rank_ranger+rank_gbm+rank_glmnet)/3), y=rank_actual)) + scale_color_gradient(low="white", high="black") + geom_point() + 
+#   labs(title='Actual vs Av. rank pred.')+ xlab("Average rank [%]") + ylab("Actual rank [%]") + 
+#   xlim(c(0, 100)) + ylim(c(0, 100)) + coord_fixed(ratio=1.3)
 
 # Best predictions from the different methods  
 temp <- rank.pred[rank.pred$rank_ranger > 93 & rank.pred$rank_gbm > 93 & rank.pred$rank_glmnet > 93, ]
-temp <- rank.pred[(rank.pred$rank_ranger + rank.pred$rank_gbm + rank.pred$rank_glmnet)/3 > 98, ]
+temp <- rank.pred[(rank.pred$rank_ranger + rank.pred$rank_gbm + rank.pred$rank_glmnet)/3 > 95, ]
 save(temp, file = "~/Dropbox/Courses/R/Finance/Figures/Companies95.5_2015-09-30.Rda")
 rank.pred[rank.pred$rank_ranger < 5 & rank.pred$rank_gbm < 5 & rank.pred$rank_glmnet < 5, ]
 

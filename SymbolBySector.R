@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 # (c) Copyright 2014 mkfs <https://github.com/mkfs>
 # Yahoo Finance interface.
-# Modified by Fernando Montes April 2016
+# Modified by Fernando Montes April 2016, August 2017
 
 # ----------------------------------------------------------
 # Additional functions needed by Download.R --------------
@@ -14,10 +14,15 @@ library(rjson)
 library(httr)
 
 # URLs for Yahoo Finance CSV API
-url.yahoo.finance.base <- 'https://biz.yahoo.com/p/'
+url.yahoo.finance.base <- 'https://biz.yahoo.com/p'
 url.yahoo.finance.sector <- 'https://biz.yahoo.com/p/csv/s_conameu.csv'
 url.yahoo.finance.sector.industry <- 'https://biz.yahoo.com/p/csv/'
 
+# August 2017
+# new yahoo way to access stocks within a given sector
+# https://biz.yahoo.com/p/112/conameu.html
+# or
+# https://finance.yahoo.com/industry/agricultural_chemicals
 
 # Helper function to safely download data using Curl.
 yahoo.download.csv.as.df <- function(url, set.id=TRUE) {
@@ -29,11 +34,15 @@ yahoo.download.csv.as.df <- function(url, set.id=TRUE) {
 # Helper function to safely download data using Curl.
 yahoo.download.as.df <- function(url, set.id=TRUE) {
   sec <- scan(file = url, what = "character", sep ="\n",  allowEscapes = TRUE)
-  sec <- sec[56:length(sec)]
+  # sec <- sec[1:length(sec)]
+  sec <- sec[1:10]
   html <- htmlParse(sec)
-  html.names <- as.vector(xpathSApply(html, '//td/font', function(x) ifelse(is.null(xmlChildren(x)$a), NA, xmlAttrs(xmlChildren(x)$a, 'href'))))
+  #Yahoo finance changed some of its pages. Updated August 2017
+  #html.names <- as.vector(xpathSApply(html, '//td/font', function(x) ifelse(is.null(xmlChildren(x)$a), NA, xmlAttrs(xmlChildren(x)$a, 'href'))))
+  html.names <- as.vector(xpathSApply(html, '//td', function(x) ifelse(is.null(xmlChildren(x)$a), NA, xmlAttrs(xmlChildren(x)$a, 'href'))))
   html.names <- html.names[!is.na(html.names)]
-  html.names <- substr(html.names, 81, nchar(html.names)-5)
+  #Yahoo finance changed some of its pages. Updated August 2017
+  html.names <- substr(html.names, (nchar(html.names)+10)/2+1, nchar(html.names))
 }
 
 # Return a dataframe of all sectors in Yahoo Finance.
@@ -151,7 +160,7 @@ list.sectors.industries <- function() {
 # dataframe returned by list.sectors.industries().
 industry.All.companies <- function( industry ) {
   url <- paste(url.yahoo.finance.base, 
-               paste(as.integer(industry), 'conameu.html', sep=''), 
+               paste(as.integer(industry), '/conameu.html', sep=''), 
                sep='/')
   df <- yahoo.download.as.df(url)
   df <- df[df != ""]

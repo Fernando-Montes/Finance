@@ -8,18 +8,23 @@
 library(tseries)
 library(quantmod)
 
-targetPath <- "~/Dropbox/Courses/R/Finance/Downloads2/"
+targetPath <- "~/Dropbox/Courses/R/StockModel-I/Downloads_2017Aug/"
 
 # Loading additional functions
-source('~/Dropbox/Courses/R/Finance/SymbolBySector.R')
+source('~/Dropbox/Courses/R/StockModel-I/SymbolBySector.R')
 
 # ----------- Relevant functions ----------------
-# Returns data frame with Sector.Name, Sector.Num, Industry.Name, Industry.Num
-listAll <- list.sectors.industries()
+# Creating SectorIndustryInfo.RData is currently not working: Yahoo finance changed some of its 
+# pages and it seems to not longer have the information. Using a previously saved file !!!!
+# # Returns data frame with Sector.Name, Sector.Num, Industry.Name, Industry.Num
+# listAll <- list.sectors.industries()
+# 
+# # Saving all the sector-industry information
+# fileName <- paste(targetPath, "SectorIndustryInfo.RData", sep="")
+# save(listAll, file = fileName)
 
-# Saving all the sector-industry information
-fileName <- paste(targetPath, "SectorIndustryInfo.RData", sep="")
-save(listAll, file = fileName)
+fileName <- paste("~/Dropbox/Courses/R/StockModel-I/", "SectorIndustryInfo.RData", sep="")
+load(fileName)  # loads listAll: all sector and industries
 
 # --------
 # Return a dataframe of companies in the specified sector. Note that sector is a numeric ID 
@@ -62,15 +67,17 @@ save(stockInfoAll, file = fileName)
 fileName <- paste(targetPath, "StockInfoAll.RData", sep="")
 load(file = fileName)
 
-for (i in 1:length(stockInfoAll[,1])) {
-#for (i in 1:length(missing[,1])) {
+#for (i in 1:length(stockInfoAll[,1])) {
+#for (i in 709:711) {
+for (i in 1:length(missing[,1])) {
     
   print(i)
-  stock <- stockInfoAll[i,1]
+  #stock <- stockInfoAll[i,1]
+  stock <- missing[i,1]
   
   # if there is information online from both yahoo and google
   if ( class(try(get.hist.quote(instrument=stock, quote="AdjClose", provider="yahoo", compression="d", retclass="zoo", quiet=TRUE), silent = TRUE)) != "try-error" 
-      # & class(try( getFinancials(stock, auto.assign = FALSE), silent = TRUE)) != "try-error" 
+      & class(try( getFinancials(stock, auto.assign = FALSE), silent = TRUE)) != "try-error" 
        ) {
     
     # Obtaining historical stock price data
@@ -79,13 +86,13 @@ for (i in 1:length(stockInfoAll[,1])) {
     fileName <- paste(targetPath, stock, "-prices.RData", sep="")
     save(SYMB_prices, file = fileName)
     
-    # # Obtaining stock financial info
-    # FinStock <- getFinancials(stock, auto.assign = FALSE)
-    # # Code to write info
-    # fileName <- paste(targetPath, stock, "-FinStock.RData", sep="")
-    # save(FinStock, file = fileName)
-    # 
-    # stockInfo[nrow(stockInfo) + 1, ] <- c(stock, stockInfoAll[i,2], stockInfoAll[i,3])
+    # Obtaining stock financial info
+    FinStock <- getFinancials(stock, auto.assign = FALSE)
+    # Code to write info
+    fileName <- paste(targetPath, stock, "-FinStock.RData", sep="")
+    save(FinStock, file = fileName)
+
+    stockInfo[nrow(stockInfo) + 1, ] <- c(stock, stockInfoAll[i,2], stockInfoAll[i,3])
   }
 }  
 
@@ -98,15 +105,17 @@ save(stockInfo, file = fileName)
 
 # -----------------------------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------- 
-# Dataframe to make sure companies do not have info  
+# Dataframe to make sure there are no companies that do not have info  
 missing <- rbind(stockInfoAll, stockInfo)
 missing <- missing[!duplicated(missing) & !duplicated(missing, fromLast = TRUE), ]
   
 # -----------------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------
 # Code to check if google is back to normal (after captcha message)
-stock <- stockInfoAll[1,1]
+stock <- stockInfoAll[2801,1]
+#stock <- missing[1,1]
 getFinancials(stock, auto.assign = FALSE)
+get.hist.quote(instrument=stock, quote="AdjClose", provider="yahoo", compression="d", retclass="zoo", quiet=TRUE)
 tryCatch( getFinancials(stock, auto.assign = FALSE),  error = function(err) {
   if(err$message == "cannot open the connection") { print("503 Service Unavailable")
     stop("Google captcha") } })

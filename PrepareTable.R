@@ -6,7 +6,7 @@
 prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.model) {
   
   # Sourcing add.stock.to.table function
-  source('~/Dropbox/Courses/R/Finance/StockInfo.R') 
+  source('~/Dropbox/Courses/R/StockModel-I/StockInfo.R') 
   
   # Creating the table with the stock info  --------------------
   ptime <- system.time({
@@ -19,6 +19,7 @@ prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.
                         Price.Model.end = numeric(0),
                         Price.Category = character(0),
                         Assets = numeric(0),
+                        Ev = numeric(0),
                         Ev.earning = numeric(0),
                         Ev.ebitda = numeric(0),
                         Ev.book = numeric(0),
@@ -36,7 +37,7 @@ prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.
                         SectorIndustry.Num = character(0), stringsAsFactors=FALSE
     )
     table.temp[1, ]  <- add.stock.to.table(stockInfo[i,1], end.date.model, ini.date.model, apply.date.model)
-    table.temp[1,22] <- stockInfo[i,3] # Adding industry number stock belongs to
+    table.temp[1,23] <- stockInfo[i,3] # Adding industry number stock belongs to
     data.frame(table.temp)
   }
   

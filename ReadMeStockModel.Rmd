@@ -23,12 +23,12 @@ The model is built using with financial information available on the web. The fi
     FinStock <- getFinancials(stock, auto.assign = FALSE)
 ```
 
-All the stocks available in yahoo finance are tentatively used in the model preparation and prediction. The implementation of which information is available online is based on <https://github.com/mkfs> and from functions written by [me](https://github.com/Fernando-Montes/Finance). 
+Almost all stocks available in yahoo finance are used in the model preparation and prediction. Downloading of available information is is based on <https://github.com/mkfs> and from functions written by [me](https://github.com/Fernando-Montes/Finance). 
 
 There are about 2750 companies that have all the information required in the model. 
 
-Companies like *brgo* have what it seems wrong information. The price was that high only for a couple of days. Another example is *mspc* that has information that is different from what the yahoo website has. It there something wrong with some of these ultra cheap stocks?
-There are 18 companies that have a price less than 1 cent during the two years prior to the end model date (*brgo* and *mspc* among them). Those companies were not taken into account when constructing the model. 
+Companies like *brgo* have what it seems wrong information since the price is unrealistically high for a couple of days and suddenly decreases to normal values. Another example is *mspc* that has information that is different from what the yahoo website has. It there something wrong with some of these ultra cheap stocks?
+There are 18 companies that have a price less than 1 cent during the two years prior to the end model date (*brgo* and *mspc* among them). Those companies were not taken into account when constructing the model. **Update August 2017:** Only companies that have a stock price greater than $5 and belong to the Nasdaq or NYSE stock exchanges are included. 
 
 # Code
 The financial information is saved locally since it is time consuming to access websites every time the model is run, and because google asks for user input (captcha screen) if running the script. The main file is StockModel.R. The file names describes what each file does. 
@@ -108,7 +108,7 @@ Calculating the RMSE directly in the train and validation data sets result in 57
 suppressPackageStartupMessages(library(googleVis))
 ```
 ```{r results='asis', echo=FALSE}
-load(file = "~/Dropbox/Courses/R/Finance/Figures/imp_par.Rda")
+load(file = "~/Dropbox/Courses/R/StockModel-I/Figures/imp_par.Rda")
 tab1 <- gvisTable(head(imp_par, 13))
 print(tab1, "chart")
 ```
@@ -123,7 +123,7 @@ but there is a problem. These are the best 10 results in the validation data:
 suppressPackageStartupMessages(library(googleVis))
 ```
 ```{r results='asis', echo=FALSE}
-load(file = "~/Dropbox/Courses/R/Finance/Figures/Res_val.Rda")
+load(file = "~/Dropbox/Courses/R/StockModel-I/Figures/Res_val.Rda")
 tab1 <- gvisTable(head(res_val, 10))
 print(tab1, "chart")
 ```
@@ -152,7 +152,7 @@ The variables importance in a $gbm$ model are in the following table:
 suppressPackageStartupMessages(library(googleVis))
 ```
 ```{r results='asis', echo=FALSE}
-load(file = "~/Dropbox/Courses/R/Finance/Figures/imp_par2.Rda")
+load(file = "~/Dropbox/Courses/R/StockModel-I/Figures/imp_par2.Rda")
 tab1 <- gvisTable(head(imp_par, 13))
 print(tab1, "chart")
 ```
@@ -243,7 +243,7 @@ Requiring a rank in methods $ranger$, $gbm$ and $glmnet$ above 90%, the followin
 suppressPackageStartupMessages(library(googleVis))
 ```
 ```{r results='asis', echo=FALSE}
-load(file = "~/Dropbox/Courses/R/Finance/Figures/Companies90_2015-06-30.Rda")
+load(file = "~/Dropbox/Courses/R/StockModel-I/Figures/Companies90_2015-06-30.Rda")
 tab1 <- gvisTable(head(temp, 13))
 print(tab1, "chart")
 ```
@@ -254,7 +254,7 @@ Using the same model but for data from 2013/09/03 to 2015/09/30 for a prediction
 suppressPackageStartupMessages(library(googleVis))
 ```
 ```{r results='asis', echo=FALSE}
-load(file = "~/Dropbox/Courses/R/Finance/Figures/CompaniesBest_2015-09-30.Rda")
+load(file = "~/Dropbox/Courses/R/StockModel-I/Figures/CompaniesBest_2015-09-30.Rda")
 tab1 <- gvisTable(head(temp, 13))
 print(tab1, "chart")
 ```
@@ -265,7 +265,7 @@ None of the methods is particularly good. It seems that the assumption that a mo
 suppressPackageStartupMessages(library(googleVis))
 ```
 ```{r results='asis', echo=FALSE}
-load(file = "~/Dropbox/Courses/R/Finance/Figures/Companies95.5_2015-09-30.Rda")
+load(file = "~/Dropbox/Courses/R/StockModel-I/Figures/Companies95.5_2015-09-30.Rda")
 tab1 <- gvisTable(head(temp, 13))
 print(tab1, "chart")
 ```
