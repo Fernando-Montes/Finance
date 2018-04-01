@@ -3,9 +3,9 @@ Machine learning project created with the goal to predict the stock price of tho
 Data
 ----
 
-The model is built using free financial information available from [yahoo](https://finance.yahoo.com/) and [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) finance websites. Financial information is downloaded in a local directory using functions written in R (<https://github.com/Fernando-Montes/Finance>) (the code is based on <https://github.com/mkfs> but had to be modified since the yahoo website has recently been changed). Since the model requires historical financial information from a given starting date (currently two years prior to end of model date), not all companies found on the [yahoo](https://finance.yahoo.com/) and/or [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) websites satisfy this requirement. The information required by the model includes stock daily price and quaterly financial data for each company. The model takes into account the type of industry (services, financial, technology, etc.) and sector (electronics, multimedia, telecom domestic, etc.) each company belongs to. The industry and sector information is obtained from the yahoo website. The model uses comparisons against peers within a given industry and sector. Stock prices and quaterly data are obtained using the quantmod and PerformanceAnalytics R packages.
+The model is built using free financial information available from [yahoo](https://finance.yahoo.com/) and [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) finance websites. Financial information is downloaded in a local directory using functions written in R (<https://github.com/Fernando-Montes/Finance>) (the code is based on <https://github.com/mkfs> but had to be modified since the yahoo website has recently been changed). Since the model requires historical financial information from a given starting date, not all companies found on the [yahoo](https://finance.yahoo.com/) and/or [google](https://www.google.com/finance?ei=5xv9V_DjGMnKmAG_kJBg) websites satisfy this requirement. The information required by the model includes stock daily price and quaterly financial data for each company. The model takes into account the type of industry (services, financial, technology, etc.) and sector (electronics, multimedia, telecom domestic, etc.) each company belongs to. The industry and sector information is obtained from the yahoo website. The model uses comparisons against peers within a given industry and sector. Stock prices and quaterly data are obtained using the quantmod and timeseries R packages.
 
-There are companies that have been rejected in the model due to peculiarities in their stock price. An example is a company like *brgo* that have what it seems wrong information since the price is unrealistically high for a couple of days and suddenly decreases to normal values. Another example is *mspc* that has information that is different in the google and yahoo websites. There are also a few companies (~20) that have a price less than 1 cent during the two years prior to the end model date (*brgo* and *mspc* among them). Those companies were not taken into account when constructing the model. Currently, only companies that have a stock price greater than $5 and belong to the Nasdaq or NYSE stock exchanges are included in the model. There are currently about 2800-3000 companies that have all the information required by the model.
+There are companies that have been rejected in the model due to peculiarities in their stock price. An example is a company like *brgo* that have what it seems wrong information since the price is unrealistically high for a couple of days and suddenly decreases to normal values. Another example is *mspc* that has information that is different in the google and yahoo websites. There are also a few companies (~20) that have a price less than 1 cent during the two years prior to the end model date (*brgo* and *mspc* among them). Those companies were not taken into account when constructing the model. Currently, only companies that belong to the Nasdaq or NYSE stock exchanges are included in the model. There are currently about 2800-3000 companies that have all the information required by the model.
 
 Code
 ----
@@ -15,11 +15,13 @@ The financial information is saved locally since it is time consuming to access 
 #### Files to download data:
 
 -   **SymbolBySector.R**: Helper functions to classify all stocks based on sector and industry based on information from yahoo finance. It contains function *list.sectors.industries* that returns a data frame with these information. It also saves the data frame *listAll* in *SectorIndustryInfo.RData* that contains sector and industry numbers and names.
--   **Download.R**: Main file to download and save information to be used by the model. It uses helper functions to create data frame (*stockInfo*) containining stock symbol, sector and industry numbers (in *StockInfo.RData*). It also downloads daily and quaterly financial data for all the companies listed in *stockInfo*.
+-   **Updater.r**: File to download and create information to be used later when running the stock model. It uses helper functions to create data frame (*stockInfo*) containining stock symbol, sector and industry numbers (in *StockInfo.RData*). It also downloads daily and quaterly financial data for all the companies listed in *stockInfo*.
+-   **updater.sh**: Shell script to run Updater.r given input information (if stock list is to be updated, if prices are to be updated, etc.)
+-   **updaterLaunchd.plist**: Launchd (MACOS) script to run updater everyday.
 
 #### Files to run the model:
 
--   **StockModel.R**: Main file that prepares the model and runs it.
+-   **StockModelUpdater.R**: Main file that prepares the model and runs it.
 -   **StockInfo.R**: Helper functions to be used by PrepareTable.R
 -   **PrepareTable.R**: Creates data frame *table.model* that contains information for each stock (i.e. current stock price, earnings in the last quarter, equity/debt, moving stock price averages, etc.). Some of these variables will be used in the model.
 -   **PrepareTableSector.R**: Adds peer-based-comparison variables to data frame *table.model* (i.e. enterprise value/earnings of the stock / average ratio of its peers).
@@ -211,13 +213,13 @@ Comments on results
 
 In an earlier iteration of the model, no peer comparison variables were used but instead a variable specifying the sector-industry of each company was used. Not all historical variables were used. The time horizon used in the following was 15 months in the future (from the data financial information is last available). The model was prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2016/09/30. The most important variables using the *g**b**m* method were:
 
-<!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Sat Jan 27 15:19:37 2018 -->
+<!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
+<!-- Sun Apr  1 18:49:26 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableIDe7cf2e36bf () {
+function gvisDataTableID404f2f7ab433 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -281,13 +283,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableIDe7cf2e36bf() {
-var data = gvisDataTableIDe7cf2e36bf();
+function drawChartTableID404f2f7ab433() {
+var data = gvisDataTableID404f2f7ab433();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableIDe7cf2e36bf')
+    document.getElementById('TableID404f2f7ab433')
     );
     chart.draw(data,options);
     
@@ -311,9 +313,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableIDe7cf2e36bf);
+callbacks.push(drawChartTableID404f2f7ab433);
 })();
-function displayChartTableIDe7cf2e36bf() {
+function displayChartTableID404f2f7ab433() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -336,7 +338,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableIDe7cf2e36bf"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f2f7ab433"></script>
 <!-- divChart -->
 
 All other variables are not relevant (rel.inf = 0). A variable specifying if **SectorIndustry.Num** were 134 and 133 (Gold and Industrial Metals & Minerals, respectively) was the most important. The prediction performance compared to the actual performance in the train data looks reasonable. Not only for the highest performers but also for the laggarts. The same comparison in the validation data also seems decent,
@@ -345,13 +347,13 @@ All other variables are not relevant (rel.inf = 0). A variable specifying if **S
 
 but there is a problem. These are the best 10 results in the validation data:
 
-<!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Sat Jan 27 15:19:37 2018 -->
+<!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
+<!-- Sun Apr  1 18:49:26 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableIDe7c38f62d88 () {
+function gvisDataTableID404f446a2bec () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -623,13 +625,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableIDe7c38f62d88() {
-var data = gvisDataTableIDe7c38f62d88();
+function drawChartTableID404f446a2bec() {
+var data = gvisDataTableID404f446a2bec();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableIDe7c38f62d88')
+    document.getElementById('TableID404f446a2bec')
     );
     chart.draw(data,options);
     
@@ -653,9 +655,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableIDe7c38f62d88);
+callbacks.push(drawChartTableID404f446a2bec);
 })();
-function displayChartTableIDe7c38f62d88() {
+function displayChartTableID404f446a2bec() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -678,7 +680,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableIDe7c38f62d88"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f446a2bec"></script>
 <!-- divChart -->
 
 All of the top results were from **SectorIndustry.Num** 134 (Gold). If industries 134 and 133 are removed from the final results (but still keeping them in the model), the model results are much worse and there does not seem to be a correlation between prediction and actual performance in the validation data:
@@ -689,13 +691,13 @@ In order to reduce the influence of the variable specifying the sector and indus
 
 The variables importance in the *g**b**m* model are in the following table:
 
-<!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Sat Jan 27 15:19:37 2018 -->
+<!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
+<!-- Sun Apr  1 18:49:26 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableIDe7c6686574e () {
+function gvisDataTableID404f6ce7982a () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -759,13 +761,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableIDe7c6686574e() {
-var data = gvisDataTableIDe7c6686574e();
+function drawChartTableID404f6ce7982a() {
+var data = gvisDataTableID404f6ce7982a();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableIDe7c6686574e')
+    document.getElementById('TableID404f6ce7982a')
     );
     chart.draw(data,options);
     
@@ -789,9 +791,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableIDe7c6686574e);
+callbacks.push(drawChartTableID404f6ce7982a);
 })();
-function displayChartTableIDe7c6686574e() {
+function displayChartTableID404f6ce7982a() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -814,7 +816,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableIDe7c6686574e"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f6ce7982a"></script>
 <!-- divChart -->
 
 Calculating the RMSE directly in the train and validation data sets result in 56.1 and 59.4 respectively.
@@ -877,13 +879,13 @@ As expected, the previous results are robust when using different train data set
 
 The following companies are obtained when requiring a rank above 90% for all methods (*r**a**n**g**e**r*, *g**b**m* and *g**l**m**n**e**t*) using data from 2013/06/03 to 2015/06/30 (end of model date) for a 2015/09/30 stock price prediction:
 
-<!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Sat Jan 27 15:19:37 2018 -->
+<!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
+<!-- Sun Apr  1 18:49:26 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableIDe7c20c2491c () {
+function gvisDataTableID404f42dc2be5 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -915,13 +917,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableIDe7c20c2491c() {
-var data = gvisDataTableIDe7c20c2491c();
+function drawChartTableID404f42dc2be5() {
+var data = gvisDataTableID404f42dc2be5();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableIDe7c20c2491c')
+    document.getElementById('TableID404f42dc2be5')
     );
     chart.draw(data,options);
     
@@ -945,9 +947,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableIDe7c20c2491c);
+callbacks.push(drawChartTableID404f42dc2be5);
 })();
-function displayChartTableIDe7c20c2491c() {
+function displayChartTableID404f42dc2be5() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -970,18 +972,18 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableIDe7c20c2491c"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f42dc2be5"></script>
 <!-- divChart -->
 
 Using the trained *r**a**n**g**e**r* and *g**b**m* methods for data from 2013/09/03 to 2015/09/30 for a 2015/12/31 prediction results in a RMS of 34 for both methods. Method *g**l**m**n**e**t* has an outlier that makes the RMS blow up. These are the companies with the highest actual ranking and their method rankings:
 
-<!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Sat Jan 27 15:19:37 2018 -->
+<!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
+<!-- Sun Apr  1 18:49:26 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableIDe7c29938192 () {
+function gvisDataTableID404fd572319 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1077,13 +1079,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableIDe7c29938192() {
-var data = gvisDataTableIDe7c29938192();
+function drawChartTableID404fd572319() {
+var data = gvisDataTableID404fd572319();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableIDe7c29938192')
+    document.getElementById('TableID404fd572319')
     );
     chart.draw(data,options);
     
@@ -1107,9 +1109,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableIDe7c29938192);
+callbacks.push(drawChartTableID404fd572319);
 })();
-function displayChartTableIDe7c29938192() {
+function displayChartTableID404fd572319() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1132,18 +1134,18 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableIDe7c29938192"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404fd572319"></script>
 <!-- divChart -->
 
 None of the methods is particularly good. It seems that the assumption that a model created and optimized at an earlier time (3 months in this case) is not completely valid or useful by the time it has to be used. Requiring an average rank between the different methods (*r**a**n**g**e**r*, *g**b**m* and *g**l**m**n**e**t*) above 95.5%, results in the following companies:
 
-<!-- Table generated in R 3.3.2 by googleVis 0.6.2 package -->
-<!-- Sat Jan 27 15:19:37 2018 -->
+<!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
+<!-- Sun Apr  1 18:49:26 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableIDe7c57df36f7 () {
+function gvisDataTableID404f5b650b1b () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1207,13 +1209,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableIDe7c57df36f7() {
-var data = gvisDataTableIDe7c57df36f7();
+function drawChartTableID404f5b650b1b() {
+var data = gvisDataTableID404f5b650b1b();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableIDe7c57df36f7')
+    document.getElementById('TableID404f5b650b1b')
     );
     chart.draw(data,options);
     
@@ -1237,9 +1239,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableIDe7c57df36f7);
+callbacks.push(drawChartTableID404f5b650b1b);
 })();
-function displayChartTableIDe7c57df36f7() {
+function displayChartTableID404f5b650b1b() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1262,7 +1264,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableIDe7c57df36f7"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f5b650b1b"></script>
 <!-- divChart -->
 
 which have an average actual win loss performance percentage of 4.6%. The average performance percentage of all the companies considered during the same time period is 0.7%.
