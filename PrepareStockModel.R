@@ -26,6 +26,7 @@ prepare.model <- function(my_train, methodchosen) {
   #my_train$Price.Category <- factor(my_train$Price.Category, levels = levels(my_train$Price.Category))
   
   if (methodchosen == "ranger") {  
+    rangerGrid = expand.grid( .mtry = c(3,4,6,10), .splitrule = c("extratrees"), .min.node.size = c(10, 20) )
     my_model <- train(
       actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + #Price.Model.end +
         Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + #Assets +
@@ -34,7 +35,7 @@ prepare.model <- function(my_train, methodchosen) {
         Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
         Price.sma.200.peers + Price.sma.50.peers +
         earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equity.debt.histo, 
-      method ="ranger", data = my_train, tuneGrid = expand.grid(mtry = c(3,4,6,10)), importance = 'impurity',  #mtry can change from 1 to tuneLength
+      method ="ranger", data = my_train, tuneGrid = rangerGrid, importance = 'impurity',
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   } else if (methodchosen == "gbm") {
     gbmGrid <- expand.grid(.interaction.depth = (1:5) * 2, .n.trees = (1:10)*20, .shrinkage = .1, .n.minobsinnode = (5:15) )

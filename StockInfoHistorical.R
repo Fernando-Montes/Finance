@@ -25,72 +25,81 @@ add.histo.to.table <- function(table, histo.date.model) {
   table$cash.histo =        NA
   table$equity.debt.histo = NA
   
-  targetPath1 <- "~/Dropbox/Courses/R/StockModel-I/Downloads_2017Aug/"  # price information
-  targetPath2 <- "~/Dropbox/Courses/R/StockModel-I/Downloads_2016/"   # financial information
+  targetPath <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/"
   
   for (i in 1:dim(table)[[1]]) {
     
-    #print(i)
-    stock <- table[i,1]  
+    # print(i)
+    stock <- table[i,1]
+    # print(stock)
     
     # Loading historical stock price data into SYMB_prices
-    fileName <- paste(targetPath1, stock, "-prices.RData", sep="")
-    try(load(file = fileName))
-    # Loading stock financial info into FinStock
-    fileName <- paste(targetPath2, stock, "-FinStock.RData", sep="")
-    try(load(file = fileName))
-    
-    # Checking the dates are right and they exist
-    if ( length(SYMB_prices[histo.date.model,])==1 ) {
+    fileName1 <- paste(targetPath, stock, "-prices.RData", sep="")
+    # Loading stock financial info into Fin_Q
+    fileName2 <- paste(targetPath, stock, "-Fin_Q.RData", sep="")
+    if ( class(try(load(file = fileName1), silent = TRUE)) != "try-error" & 
+         class(try(load(file = fileName2), silent = TRUE)) != "try-error" ) {
       
-      # Income statement
-      FinIS <- viewFin(FinStock, period = 'Q', "IS")
-      # Balance sheet
-      FinBS <- viewFin(FinStock, period = 'Q', "BS")
-      # Cash flow
-      FinCF <- viewFin(FinStock, period = 'Q', "CF")
+      # Closest date earlier than histo.date.model
+      temp = SYMB_prices[index(SYMB_prices) < histo.date.model,]
+      histo.date.mod = index(SYMB_prices[which(abs((index(temp)-histo.date.model)) == min(abs(index(temp)-histo.date.model))),])
       
-      # Finding if stock info at end.date.model (year and month) exists
-      numCol <- return.numCol(FinIS, FinBS, histo.date.model)
-      numIS <- numCol[[1]]
-      numBS <- numCol[[2]]
+      # Closest financial quarter date earlier than histo.date.model
+      temp = as.Date(Fin_Q$date)[as.Date(Fin_Q$date) < histo.date.model]
+      if( length(temp) != 0) { histo.date.financial = temp[which(abs((temp-histo.date.model)) == min(abs(temp-histo.date.model)))] } 
+      else { histo.date.financial = as.Date("1900-01-01") }
       
-      # Checking that there is enough historical information at time histo.date.model
-      if ( numIS != 0 & numBS != 0) {
+      # Checking that there is enough stock price information 1 year earlier (within 5 days)
+      # and that there is enough financial information 1 year earlier (within 90 days)
+      if ( abs(histo.date.mod - histo.date.model) < 10 & abs(histo.date.financial - histo.date.model) < 90 ) {
         
+        rownames(Fin_Q) = Fin_Q$date   # renaming rows
+        histo.date.financial = as.character(histo.date.financial)    
         # Stock price at histo.date.model 
-        price <- as.numeric(SYMB_prices[index(SYMB_prices[histo.date.model,]),1])
+        price <- as.numeric(SYMB_prices[index(SYMB_prices[histo.date.mod,]),4])
         # Number of outstanding shares at time end.date.model
-        number.shares <- ifelse(is.na(FinBS["Total Common Shares Outstanding",numBS]),0,FinBS["Total Common Shares Outstanding",numBS])
+        number.shares <- ifelse(is.na(Fin_Q[histo.date.financial, "Total Common Shares Outstanding"]), 0, 
+                                Fin_Q[histo.date.financial, "Total Common Shares Outstanding"])
         if (number.shares == 0 ) { 
           print(paste(stock," does not have Common Shares Outstanding information"))
-          return(NA) 
+          ev = NA
+        } else {
+          # Enterprise value
+          ev <- price*number.shares
         }
-        # Enterprise value
-        ev <- price*number.shares 
-        # EBITDA = (net income FinIS + interest income FinIS + income before tax FinIS - income after tax FinIS 
-        #           + depreciation/amortization FinIS + unusual expense FinIS)
-        ebitda <- ifelse(is.na(FinIS["Net Income",numIS]),0,FinIS["Net Income",numIS]) +
-          ifelse(is.na(FinIS["Interest Income(Expense), Net Non-Operating",numIS]),0,FinIS["Interest Income(Expense), Net Non-Operating",numIS])+
-          ifelse(is.na(FinIS["Income Before Tax",numIS]),0,FinIS["Income Before Tax",numIS])-
-          ifelse(is.na(FinIS["Income After Tax",numIS]),0,FinIS["Income After Tax",numIS])+
-          ifelse(is.na(FinIS["Depreciation/Amortization",numIS]),0,FinIS["Depreciation/Amortization",numIS])+
-          ifelse(is.na(FinIS["Unusual Expense (Income)",numIS]),0,FinIS["Unusual Expense (Income)",numIS])
+        # EBITDA = (net income + interest income + income before tax - income after tax
+        #           + depreciation/amortization  + unusual expense)
+        ebitda <- ifelse(is.na(Fin_Q[histo.date.financial,"Net Income"]), 0,
+                         Fin_Q[histo.date.financial,"Net Income"]) +
+          ifelse(is.na(Fin_Q[histo.date.financial,"Interest Income(Expense), Net Non-Operating"]), 0, 
+                 Fin_Q[histo.date.financial,"Interest Income(Expense), Net Non-Operating"]) +
+          ifelse(is.na(Fin_Q[histo.date.financial,"Income Before Tax"]), 0, 
+                 Fin_Q[histo.date.financial,"Income Before Tax"]) -
+          ifelse(is.na(Fin_Q[histo.date.financial,"Income After Tax"]), 0, 
+                 Fin_Q[histo.date.financial,"Income After Tax"]) +
+          ifelse(is.na(Fin_Q[histo.date.financial,"Depreciation/Amortization"]), 0,
+                 Fin_Q[histo.date.financial,"Depreciation/Amortization"]) +
+          ifelse(is.na(Fin_Q[histo.date.financial,"Unusual Expense (Income)"]), 0,
+                 Fin_Q[histo.date.financial,"Unusual Expense (Income)"])
         
-        # Ev/earning = price/diluted normalized EPS (FinIS) 
-        Ev.earning <- ifelse(FinIS["Diluted Normalized EPS",numIS] != 0, price/FinIS["Diluted Normalized EPS",numIS], NA)
-        # Ev/ebitda = EV/(net income FinIS + interest income FinIS + income before tax FinIS - income after tax FinIS 
-        #                + depreciation/amortization FinIS + unusual expense FinIS)
+        # Ev/earning = price/diluted normalized EPS 
+        Ev.earning <- ifelse(Fin_Q[histo.date.financial,"Diluted Normalized EPS"] != 0, 
+                             price/Fin_Q[histo.date.financial,"Diluted Normalized EPS"], NA)
+        # Ev/ebitda = EV/(net income + interest income + income before tax - income after tax
+        #                + depreciation/amortization + unusual expense)
         Ev.ebitda <- ifelse(ebitda != 0, ev/ebitda, NA)
-        # Ev/book = EV/total equity (FinBS) 
-        Ev.book <- ifelse(FinBS["Total Equity",numBS] != 0, ev/FinBS["Total Equity",numBS], NA)
-        # Ev/revenue = EV/Total Revenue (FinIS) 
-        Ev.revenue <- ifelse(FinIS["Total Revenue",numIS] != 0, ev/FinIS["Total Revenue",numIS], NA)
-        # Ev/cash = EV/Cash and Short Term Investments (FinBS) 
-        Ev.cash <- ifelse(FinBS["Cash and Short Term Investments",numBS] != 0, ev/FinBS["Cash and Short Term Investments",numBS], NA)
-        # Price.equity.debt = price/Total Equity (FinBS)/Total Debt (Fin BS)
-        Price.equity.debt <- ifelse(FinBS["Total Debt",numBS] != 0 & FinBS["Total Equity",numBS] != 0, 
-                                    price*FinBS["Total Debt",numBS]/FinBS["Total Equity",numBS], NA)
+        # Ev/book = EV/total equity 
+        Ev.book <- ifelse(Fin_Q[histo.date.financial,"Total Equity"] != 0, 
+                          ev/Fin_Q[histo.date.financial,"Total Equity"], NA)
+        # Ev/revenue = EV/Total Revenue 
+        Ev.revenue <- ifelse(Fin_Q[histo.date.financial,"Total Revenue"] != 0, 
+                             ev/Fin_Q[histo.date.financial,"Total Revenue"], NA)
+        # Ev/cash = EV/Cash and Short Term Investments 
+        Ev.cash <- ifelse(Fin_Q[histo.date.financial,"Cash and Short Term Investments"] != 0, 
+                          ev/Fin_Q[histo.date.financial,"Cash and Short Term Investments"], NA)
+        # Price.equity.debt = price/Total Equity/Total Debt
+        Price.equity.debt <- ifelse(Fin_Q[histo.date.financial,"Total Debt"] != 0 & Fin_Q[histo.date.financial,"Total Equity"] != 0, 
+                                    price*Fin_Q[histo.date.financial,"Total Debt"]/Fin_Q[histo.date.financial,"Total Equity"], NA)
         
         table$earning.histo[i] =        (table$Ev.earning[i]/table$Ev[i])/(Ev.earning/ev)
         table$ebitda.histo[i] =         (table$Ev.ebitda[i]/table$Ev[i])/(Ev.ebitda/ev)
@@ -100,10 +109,10 @@ add.histo.to.table <- function(table, histo.date.model) {
         table$equity.debt.histo[i] = (table$Price.equity.debt[i]/table$Price.Model.end[i])/(Price.equity.debt/price)
         
       } else {
-        print(paste(stock," does not have enough historical financial information at time histo.date.model"))
+        print(paste(stock," does not have enough information at time histo.date.model"))
       }
     } else {
-      print(paste(stock," does not have enough stock price information"))
+      print(paste("Could not open files for ", stock))
     }
   }
   table <- na.exclude(table)  # remove stocks that do not have historical financial information

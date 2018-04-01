@@ -38,6 +38,6 @@ prepare.table.sector <- function(table) {
     table[i,"Price.sma.50.peers"] <- table[i,"Price.sma.50"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$Price.sma.50)
     
   }
-
+  table <- na.exclude(table)
   return(table)  
 }
