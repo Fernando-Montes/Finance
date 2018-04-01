@@ -214,12 +214,12 @@ Comments on results
 In an earlier iteration of the model, no peer comparison variables were used but instead a variable specifying the sector-industry of each company was used. Not all historical variables were used. The time horizon used in the following was 15 months in the future (from the data financial information is last available). The model was prepared with data from 2013/06/03 to 2015/06/30 for a prediction at 2016/09/30. The most important variables using the *g**b**m* method were:
 
 <!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
-<!-- Sun Apr  1 18:49:26 2018 -->
+<!-- Sun Apr  1 19:00:57 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID404f2f7ab433 () {
+function gvisDataTableID40ad1e193c33 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -283,13 +283,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID404f2f7ab433() {
-var data = gvisDataTableID404f2f7ab433();
+function drawChartTableID40ad1e193c33() {
+var data = gvisDataTableID40ad1e193c33();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID404f2f7ab433')
+    document.getElementById('TableID40ad1e193c33')
     );
     chart.draw(data,options);
     
@@ -313,9 +313,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID404f2f7ab433);
+callbacks.push(drawChartTableID40ad1e193c33);
 })();
-function displayChartTableID404f2f7ab433() {
+function displayChartTableID40ad1e193c33() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -338,7 +338,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f2f7ab433"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID40ad1e193c33"></script>
 <!-- divChart -->
 
 All other variables are not relevant (rel.inf = 0). A variable specifying if **SectorIndustry.Num** were 134 and 133 (Gold and Industrial Metals & Minerals, respectively) was the most important. The prediction performance compared to the actual performance in the train data looks reasonable. Not only for the highest performers but also for the laggarts. The same comparison in the validation data also seems decent,
@@ -348,12 +348,12 @@ All other variables are not relevant (rel.inf = 0). A variable specifying if **S
 but there is a problem. These are the best 10 results in the validation data:
 
 <!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
-<!-- Sun Apr  1 18:49:26 2018 -->
+<!-- Sun Apr  1 19:00:57 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID404f446a2bec () {
+function gvisDataTableID40ad3709691a () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -625,13 +625,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID404f446a2bec() {
-var data = gvisDataTableID404f446a2bec();
+function drawChartTableID40ad3709691a() {
+var data = gvisDataTableID40ad3709691a();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID404f446a2bec')
+    document.getElementById('TableID40ad3709691a')
     );
     chart.draw(data,options);
     
@@ -655,9 +655,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID404f446a2bec);
+callbacks.push(drawChartTableID40ad3709691a);
 })();
-function displayChartTableID404f446a2bec() {
+function displayChartTableID40ad3709691a() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -680,7 +680,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f446a2bec"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID40ad3709691a"></script>
 <!-- divChart -->
 
 All of the top results were from **SectorIndustry.Num** 134 (Gold). If industries 134 and 133 are removed from the final results (but still keeping them in the model), the model results are much worse and there does not seem to be a correlation between prediction and actual performance in the validation data:
@@ -692,12 +692,12 @@ In order to reduce the influence of the variable specifying the sector and indus
 The variables importance in the *g**b**m* model are in the following table:
 
 <!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
-<!-- Sun Apr  1 18:49:26 2018 -->
+<!-- Sun Apr  1 19:00:57 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID404f6ce7982a () {
+function gvisDataTableID40ad4c397a4 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -761,13 +761,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID404f6ce7982a() {
-var data = gvisDataTableID404f6ce7982a();
+function drawChartTableID40ad4c397a4() {
+var data = gvisDataTableID40ad4c397a4();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID404f6ce7982a')
+    document.getElementById('TableID40ad4c397a4')
     );
     chart.draw(data,options);
     
@@ -791,9 +791,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID404f6ce7982a);
+callbacks.push(drawChartTableID40ad4c397a4);
 })();
-function displayChartTableID404f6ce7982a() {
+function displayChartTableID40ad4c397a4() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -816,7 +816,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f6ce7982a"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID40ad4c397a4"></script>
 <!-- divChart -->
 
 Calculating the RMSE directly in the train and validation data sets result in 56.1 and 59.4 respectively.
@@ -880,12 +880,12 @@ As expected, the previous results are robust when using different train data set
 The following companies are obtained when requiring a rank above 90% for all methods (*r**a**n**g**e**r*, *g**b**m* and *g**l**m**n**e**t*) using data from 2013/06/03 to 2015/06/30 (end of model date) for a 2015/09/30 stock price prediction:
 
 <!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
-<!-- Sun Apr  1 18:49:26 2018 -->
+<!-- Sun Apr  1 19:00:57 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID404f42dc2be5 () {
+function gvisDataTableID40ad5d8341d0 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -917,13 +917,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID404f42dc2be5() {
-var data = gvisDataTableID404f42dc2be5();
+function drawChartTableID40ad5d8341d0() {
+var data = gvisDataTableID40ad5d8341d0();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID404f42dc2be5')
+    document.getElementById('TableID40ad5d8341d0')
     );
     chart.draw(data,options);
     
@@ -947,9 +947,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID404f42dc2be5);
+callbacks.push(drawChartTableID40ad5d8341d0);
 })();
-function displayChartTableID404f42dc2be5() {
+function displayChartTableID40ad5d8341d0() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -972,18 +972,18 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f42dc2be5"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID40ad5d8341d0"></script>
 <!-- divChart -->
 
 Using the trained *r**a**n**g**e**r* and *g**b**m* methods for data from 2013/09/03 to 2015/09/30 for a 2015/12/31 prediction results in a RMS of 34 for both methods. Method *g**l**m**n**e**t* has an outlier that makes the RMS blow up. These are the companies with the highest actual ranking and their method rankings:
 
 <!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
-<!-- Sun Apr  1 18:49:26 2018 -->
+<!-- Sun Apr  1 19:00:57 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID404fd572319 () {
+function gvisDataTableID40ad46d32a9b () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1079,13 +1079,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID404fd572319() {
-var data = gvisDataTableID404fd572319();
+function drawChartTableID40ad46d32a9b() {
+var data = gvisDataTableID40ad46d32a9b();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID404fd572319')
+    document.getElementById('TableID40ad46d32a9b')
     );
     chart.draw(data,options);
     
@@ -1109,9 +1109,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID404fd572319);
+callbacks.push(drawChartTableID40ad46d32a9b);
 })();
-function displayChartTableID404fd572319() {
+function displayChartTableID40ad46d32a9b() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1134,18 +1134,18 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404fd572319"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID40ad46d32a9b"></script>
 <!-- divChart -->
 
 None of the methods is particularly good. It seems that the assumption that a model created and optimized at an earlier time (3 months in this case) is not completely valid or useful by the time it has to be used. Requiring an average rank between the different methods (*r**a**n**g**e**r*, *g**b**m* and *g**l**m**n**e**t*) above 95.5%, results in the following companies:
 
 <!-- Table generated in R 3.4.3 by googleVis 0.6.2 package -->
-<!-- Sun Apr  1 18:49:26 2018 -->
+<!-- Sun Apr  1 19:00:57 2018 -->
 <!-- jsHeader -->
 <script type="text/javascript">
  
 // jsData 
-function gvisDataTableID404f5b650b1b () {
+function gvisDataTableID40ad33f042e2 () {
 var data = new google.visualization.DataTable();
 var datajson =
 [
@@ -1209,13 +1209,13 @@ return(data);
 }
  
 // jsDrawChart
-function drawChartTableID404f5b650b1b() {
-var data = gvisDataTableID404f5b650b1b();
+function drawChartTableID40ad33f042e2() {
+var data = gvisDataTableID40ad33f042e2();
 var options = {};
 options["allowHtml"] = true;
 
     var chart = new google.visualization.Table(
-    document.getElementById('TableID404f5b650b1b')
+    document.getElementById('TableID40ad33f042e2')
     );
     chart.draw(data,options);
     
@@ -1239,9 +1239,9 @@ if (newPackage)
   pkgs.push(chartid);
   
 // Add the drawChart function to the global list of callbacks
-callbacks.push(drawChartTableID404f5b650b1b);
+callbacks.push(drawChartTableID40ad33f042e2);
 })();
-function displayChartTableID404f5b650b1b() {
+function displayChartTableID40ad33f042e2() {
   var pkgs = window.__gvisPackages = window.__gvisPackages || [];
   var callbacks = window.__gvisCallbacks = window.__gvisCallbacks || [];
   window.clearTimeout(window.__gvisLoad);
@@ -1264,7 +1264,7 @@ callbacks.shift()();
 // jsFooter
 </script>
 <!-- jsChart -->
-<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID404f5b650b1b"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi?callback=displayChartTableID40ad33f042e2"></script>
 <!-- divChart -->
 
 which have an average actual win loss performance percentage of 4.6%. The average performance percentage of all the companies considered during the same time period is 0.7%.
