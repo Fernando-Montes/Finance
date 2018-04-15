@@ -20,7 +20,7 @@ prepare.table.sector <- function(table) {
   table$Ev.book.peers =           as.numeric(table$Ev.earning.peers)
   table$Ev.revenue.peers =        as.numeric(table$Ev.earning.peers)
   table$Ev.cash.peers =           as.numeric(table$Ev.earning.peers)
-  table$Price.equity.debt.peers = as.numeric(table$Ev.earning.peers)
+  table$EquityAssets.liability.peers = as.numeric(table$Ev.earning.peers)
   table$Price.sma.200.peers =     as.numeric(table$Ev.earning.peers)
   table$Price.sma.50.peers =      as.numeric(table$Ev.earning.peers)
     
@@ -33,7 +33,7 @@ prepare.table.sector <- function(table) {
     table[i,"Ev.book.peers"] <- table[i,"Ev.book"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$Ev.book)
     table[i,"Ev.revenue.peers"] <- table[i,"Ev.revenue"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$Ev.revenue)
     table[i,"Ev.cash.peers"] <- table[i,"Ev.cash"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$Ev.cash)
-    table[i,"Price.equity.debt.peers"] <- table[i,"Price.equity.debt"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$Price.equity.debt)
+    table[i,"EquityAssets.liability.peers"] <- table[i,"EquityAssets.liability"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$EquityAssets.liability)
     table[i,"Price.sma.200.peers"] <- table[i,"Price.sma.200"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$Price.sma.200)
     table[i,"Price.sma.50.peers"] <- table[i,"Price.sma.50"]/mean(table[table$SectorIndustry.Num == table[i, "SectorIndustry.Num"],]$Price.sma.50)
     

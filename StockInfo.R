@@ -35,10 +35,11 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
   
   # Loading historical stock price data into SYMB_prices
   fileName1 <- paste(targetPath, stock, "-prices.RData", sep="")
-  # Loading stock financial info into Fin_Q
-  fileName2 <- paste(targetPath, stock, "-Fin_Q.RData", sep="")
-  if ( class(try(load(file = fileName1), silent = TRUE)) != "try-error" & 
-       class(try(load(file = fileName2), silent = TRUE)) != "try-error" ) {
+  # Selecting only financial data of the stock
+  Fin_Q = indicatorTable[indicatorTable$ticker == stock,]
+  
+  if ( class(try(load(file = fileName1), silent = TRUE)) != "try-error" &
+       dim(Fin_Q)[1] != 0 ) {
     
     # Closest date earlier than end.date.model
     temp = SYMB_prices[index(SYMB_prices) < end.date.model,]
@@ -52,7 +53,7 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
     apply.date.mod = index(SYMB_prices[which(abs((index(SYMB_prices)-apply.date.model)) == min(abs(index(SYMB_prices)-apply.date.model))),])
     
     # Closest financial quarter date earlier than end.date.model
-    temp = as.Date(Fin_Q$date)[as.Date(Fin_Q$date) < end.date.model]
+    temp = as.Date(Fin_Q$calendardate)[as.Date(Fin_Q$calendardate) < end.date.model]
     end.date.financial = temp[which(abs((temp-end.date.model)) == min(abs(temp-end.date.model)))]
 
     # Checking that there is enough stock price information between times ini.date.model and end.date.model (within 5 days)
@@ -60,13 +61,13 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
     if ( abs(end.date.mod - end.date.model) < 10 & abs(ini.date.mod - ini.date.model) < 5 &
          abs(end.date.financial - end.date.model) < 95 ) {
       
-      rownames(Fin_Q) = Fin_Q$date   # renaming rows
+      rownames(Fin_Q) = Fin_Q$calendardate   # renaming rows
       end.date.financial = as.character(end.date.financial)
       # Stock price at end.date.model 
       price <- as.numeric(SYMB_prices[index(SYMB_prices[end.date.mod,]),4])
       # Number of outstanding shares at time end.date.model
-      number.shares <- ifelse(is.na(Fin_Q[end.date.financial, "Total Common Shares Outstanding"]),0,
-                              Fin_Q[end.date.financial, "Total Common Shares Outstanding"])
+      number.shares <- ifelse(is.na(Fin_Q[end.date.financial, "shareswa"]),0,
+                              Fin_Q[end.date.financial, "shareswa"])
       if (number.shares == 0 ) { 
         print(paste(stock," does not have Common Shares Outstanding information"))
         return(NA) 
@@ -74,18 +75,8 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
       # Enterprise value
       ev <- price*number.shares 
       # EBITDA = (net income + interest income + income before tax - income after tax + depreciation/amortization + unusual expense)
-      ebitda <- ifelse(is.na(Fin_Q[end.date.financial, "Net Income"]), 0, 
-                       Fin_Q[end.date.financial, "Net Income"]) +
-        ifelse(is.na(Fin_Q[end.date.financial, "Interest Income(Expense), Net Non-Operating"]), 0, 
-               Fin_Q[end.date.financial, "Interest Income(Expense), Net Non-Operating",numIS])+
-        ifelse(is.na(Fin_Q[end.date.financial, "Income Before Tax"]), 0,
-               Fin_Q[end.date.financial, "Income Before Tax"])-
-        ifelse(is.na(Fin_Q[end.date.financial, "Income After Tax"]), 0,
-               Fin_Q[end.date.financial, "Income After Tax"])+
-        ifelse(is.na(Fin_Q[end.date.financial, "Depreciation/Amortization"]), 0,
-               Fin_Q[end.date.financial, "Depreciation/Amortization"])+
-        ifelse(is.na(Fin_Q[end.date.financial, "Unusual Expense (Income)"]), 0,
-               Fin_Q[end.date.financial, "Unusual Expense (Income)"])
+      ebitda <- ifelse(is.na(Fin_Q[end.date.financial, "ebitda"]), 0, 
+                       Fin_Q[end.date.financial, "ebitda"]) 
       
       # The following information is at end.date.model ---------
       # lowest stock price from end.date.model-months.min to end.date.model 
@@ -97,24 +88,25 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
       # stock price category at end.date.model
       Price.Category <- ifelse(price<1., "1", ifelse(price<10., "2", ifelse(price<100., "3", "4")))
       # Total assets at end.date.model 
-      Assets <- Fin_Q[end.date.financial, "Total Assets"]
-      # Ev/earning = price/diluted normalized EPS 
-      Ev.earning <- ifelse(Fin_Q[end.date.financial, "Diluted Normalized EPS"] != 0, 
-                           price/Fin_Q[end.date.financial, "Diluted Normalized EPS"], NA)
+      Assets <- Fin_Q[end.date.financial, "assets"]
+      # Ev/earning = price/EPS 
+      Ev.earning <- ifelse(Fin_Q[end.date.financial, "eps"] != 0, 
+                           price/Fin_Q[end.date.financial, "eps"], NA)
       # Ev/ebitda = EV/(net income + interest income + income before tax - income after tax + depreciation/amortization + unusual expense)
       Ev.ebitda <- ifelse(ebitda != 0, ev/ebitda, NA)
-      # Ev/book = EV/total equity 
-      Ev.book <- ifelse(Fin_Q[end.date.financial, "Total Equity"] != 0, 
-                        ev/Fin_Q[end.date.financial, "Total Equity"], NA)
+      # Ev/book = price/Book value per share 
+      Ev.book <- ifelse(Fin_Q[end.date.financial, "bvps"] != 0, 
+                        price/Fin_Q[end.date.financial, "bvps"], NA)
       # Ev/revenue = EV/Total Revenue  
-      Ev.revenue <- ifelse(Fin_Q[end.date.financial, "Total Revenue"] != 0, 
-                           ev/Fin_Q[end.date.financial, "Total Revenue"], NA)
-      # Ev/cash = EV/Cash and Short Term Investments 
-      Ev.cash <- ifelse( Fin_Q[end.date.financial, "Cash and Short Term Investments"] != 0, 
-                         ev/Fin_Q[end.date.financial, "Cash and Short Term Investments"], NA )
-      # Price.equity.debt = price/Total Equity/Total Debt
-      Price.equity.debt <- ifelse( Fin_Q[end.date.financial, "Total Debt"] != 0 & Fin_Q[end.date.financial, "Total Equity"] != 0, 
-                                   price*Fin_Q[end.date.financial, "Total Debt"]/Fin_Q[end.date.financial, "Total Equity"], NA )
+      Ev.revenue <- ifelse(Fin_Q[end.date.financial, "revenue"] != 0, 
+                           ev/Fin_Q[end.date.financial, "revenue"], NA)
+      # Ev/cash = EV/Cash and Equivalents
+      Ev.cash <- ifelse( Fin_Q[end.date.financial, "cashneq"] != 0, 
+                         ev/Fin_Q[end.date.financial, "cashneq"], NA )
+      # EquityAssets.liability = (Equity + Assets)/Liabilities
+      EquityAssets.liability <- ifelse( Fin_Q[end.date.financial, "equity"] != 0 & Fin_Q[end.date.financial, "assets"] != 0 & 
+                                          Fin_Q[end.date.financial, "liabilities"] != 0, 
+                                   (Fin_Q[end.date.financial, "equity"]+Fin_Q[end.date.financial, "assets"])/Fin_Q[end.date.financial, "liabilities"], NA )
       SYMB_prices <- na.approx(SYMB_prices) # in case there are NA values use interpolation
       # prediction for current stock price and lower bound prediction for current stock price
       prediction.forecast <- Forecasting.ts(SYMB_prices, end.date.mod, apply.date.model)
@@ -161,7 +153,7 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
                     Ev.book,                          # EV/book value at end.date.model
                     Ev.revenue,                       # EV/revenue at end.date.model
                     Ev.cash,                          # EV/total cash at end.date.model
-                    Price.equity.debt,                # price*debt/equity at end.date.model
+                    EquityAssets.liability,           # Equity + Assets / liability at end.date.model
                     Price.Prediction.hw,              # Holt-Winters prediction for current stock price
                     Price.Prediction.hwLB,            # Holt-Winters prediction for lower bound prediction for current stock price
                     Price.Prediction.arima,           # Arima prediction for current stock price

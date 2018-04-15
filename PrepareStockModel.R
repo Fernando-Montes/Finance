@@ -29,35 +29,35 @@ prepare.model <- function(my_train, methodchosen) {
     rangerGrid = expand.grid( .mtry = c(3,4,6,10), .splitrule = c("extratrees"), .min.node.size = c(10, 20) )
     my_model <- train(
       actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + #Price.Model.end +
-        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + #Assets +
+        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + EquityAssets.liability + #Assets +
         predicted.hw.win.loss + predicted.hwLB.win.loss + predicted.arima.win.loss + 
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
-        Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
+        Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + EquityAssets.liability.peers + 
         Price.sma.200.peers + Price.sma.50.peers +
-        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equity.debt.histo, 
+        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo, 
       method ="ranger", data = my_train, tuneGrid = rangerGrid, importance = 'impurity',
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   } else if (methodchosen == "gbm") {
     gbmGrid <- expand.grid(.interaction.depth = (1:5) * 2, .n.trees = (1:10)*20, .shrinkage = .1, .n.minobsinnode = (5:15) )
     my_model <- train(
       actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + #Price.Model.end +
-        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + #Assets +
+        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + EquityAssets.liability + #Assets +
         predicted.hw.win.loss + predicted.hwLB.win.loss + predicted.arima.win.loss + 
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
-        Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
+        Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + EquityAssets.liability.peers + 
         Price.sma.200.peers + Price.sma.50.peers +
-        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equity.debt.histo, 
+        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo, 
       method ="gbm", data = my_train, bag.fraction = 0.5, tuneGrid = gbmGrid,
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   } else if (methodchosen == "glmnet") {
     my_model <- train(
       actual.win.loss ~ Price.Model.end.low.ratio + Price.Model.end.high.ratio + #Price.Model.end +
-        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + Price.equity.debt + #Assets +
+        Ev.earning + Ev.ebitda + Ev.book + Ev.revenue + Ev.cash + EquityAssets.liability + #Assets +
         predicted.hw.win.loss + predicted.hwLB.win.loss + predicted.arima.win.loss + 
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
-        Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + Price.equity.debt.peers + 
+        Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + EquityAssets.liability.peers + 
         Price.sma.200.peers + Price.sma.50.peers +
-        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equity.debt.histo, 
+        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo, 
       method ="glmnet", data = my_train, tuneGrid = expand.grid(alpha = seq(0, 1, length = 10), lambda = seq(0.0001, 1, length = 20)), preProcess = c("center", "scale"),
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   }
