@@ -52,7 +52,7 @@ add.histo.to.table <- function(table, histo.date.model) {
       
       # Checking that there is enough stock price information 1 year earlier (within 5 days)
       # and that there is enough financial information 1 year earlier (within 90 days)
-      if ( abs(histo.date.mod - histo.date.model) < 10 & abs(histo.date.financial - histo.date.model) < 90 ) {
+      if ( abs(histo.date.mod - histo.date.model) < 10 & abs(histo.date.financial - histo.date.model) < 95 ) {
         
         rownames(Fin_Q) = Fin_Q$calendardate   # renaming rows
         histo.date.financial = as.character(histo.date.financial)    

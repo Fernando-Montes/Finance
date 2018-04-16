@@ -38,11 +38,12 @@ prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.
                         rsi.10 = numeric(0),
                         rsi.50 = numeric(0),
                         dvo = numeric(0),
+                        timeDiffFin = numeric(0),
                         SectorIndustry.Num = character(0), stringsAsFactors=FALSE
     )
     # print(i)
     table.temp[1, ]  <- add.stock.to.table(stockInfo[i,1], end.date.model, ini.date.model, apply.date.model)
-    table.temp[1,23] <- stockInfo[i,3] # Adding industry number stock belongs to
+    table.temp[1,24] <- stockInfo[i,3] # Adding industry number stock belongs to
     data.frame(table.temp)
   }
   

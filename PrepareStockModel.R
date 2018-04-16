@@ -34,7 +34,7 @@ prepare.model <- function(my_train, methodchosen) {
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
         Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + EquityAssets.liability.peers + 
         Price.sma.200.peers + Price.sma.50.peers +
-        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo, 
+        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo + timeDiffFin, 
       method ="ranger", data = my_train, tuneGrid = rangerGrid, importance = 'impurity',
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   } else if (methodchosen == "gbm") {
@@ -46,7 +46,7 @@ prepare.model <- function(my_train, methodchosen) {
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
         Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + EquityAssets.liability.peers + 
         Price.sma.200.peers + Price.sma.50.peers +
-        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo, 
+        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo + timeDiffFin, 
       method ="gbm", data = my_train, bag.fraction = 0.5, tuneGrid = gbmGrid,
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   } else if (methodchosen == "glmnet") {
@@ -57,7 +57,7 @@ prepare.model <- function(my_train, methodchosen) {
         Price.sma.200 + Price.sma.50 + rsi.10 + rsi.50 + dvo +
         Ev.earning.peers + Ev.ebitda.peers + Ev.book.peers + Ev.revenue.peers + Ev.cash.peers + EquityAssets.liability.peers + 
         Price.sma.200.peers + Price.sma.50.peers +
-        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo, 
+        earning.histo + ebitda.histo + book.histo + revenue.histo + cash.histo + equityAssets.liability.histo + timeDiffFin, 
       method ="glmnet", data = my_train, tuneGrid = expand.grid(alpha = seq(0, 1, length = 10), lambda = seq(0.0001, 1, length = 20)), preProcess = c("center", "scale"),
       trControl = trainControl(method = "cv", number = 10, repeats = 50, verboseIter = TRUE, allowParallel = TRUE))
   }

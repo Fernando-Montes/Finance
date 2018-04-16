@@ -27,6 +27,7 @@
 # Relative Strength Index over the last 10 days 
 # Relative Strength Index over the last 50 days 
 # DVO indicator 
+# Days since model is applied and the most recent quarterly data available
 # industry stock belongs to
 
 add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date.model) {
@@ -55,11 +56,13 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
     # Closest financial quarter date earlier than end.date.model
     temp = as.Date(Fin_Q$calendardate)[as.Date(Fin_Q$calendardate) < end.date.model]
     end.date.financial = temp[which(abs((temp-end.date.model)) == min(abs(temp-end.date.model)))]
-
+    # Days since model is applied and the most recent quarterly data available
+    timeDiffFin = abs(end.date.model - end.date.financial)
+    
     # Checking that there is enough stock price information between times ini.date.model and end.date.model (within 5 days)
     # and that there is enough financial information at time close to end.date.model (within 90 days)    
     if ( abs(end.date.mod - end.date.model) < 10 & abs(ini.date.mod - ini.date.model) < 5 &
-         abs(end.date.financial - end.date.model) < 95 ) {
+         timeDiffFin < 180 ) {
       
       rownames(Fin_Q) = Fin_Q$calendardate   # renaming rows
       end.date.financial = as.character(end.date.financial)
@@ -162,6 +165,7 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
                     rsi.10,                           # Relative Strength Index over the last 10 days 
                     rsi.50,                           # Relative Strength Index over the last 50 days 
                     dvo,                              # DVO indicator  
+                    timeDiffFin,                      # Days since model is applied and the most recent quarterly data available
                     "temp"                            # Place-holder for industry stock belongs to
               )
       )
