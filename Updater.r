@@ -1,6 +1,6 @@
 #!/usr/local/bin/Rscript
 
-# usage: ./Updater.r -v 1 -s 1 -i 1 -p 1 m 1
+# usage: ./Updater.r -v 1 -s 1 -i 1 -p 1 -t 1 -m 1
 
 # options:
 # -v verbose
@@ -45,6 +45,7 @@ suppressPackageStartupMessages(library(doParallel))
 suppressPackageStartupMessages(library(TTR))
 suppressPackageStartupMessages(library(lubridate))
 suppressPackageStartupMessages(library(caret))
+suppressPackageStartupMessages(library(Quandl))
 
 registerDoParallel(cores = 4)
 
@@ -52,9 +53,6 @@ targetPath = "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/"
 
 # Loading list of stocks into stockInfoAll 
 fileName <- paste(targetPath, "StockInfoAll.RData", sep="")
-load(file = fileName)
-# Loading status file
-fileName <- paste(targetPath, "status.RData", sep="")
 load(file = fileName)
 
 # Updating list of stocks
@@ -85,55 +83,36 @@ if (update.Stocks == 1) {
   temp = rbind(temp, stockInfoAll)
   temp$Stock.SYM = toupper(temp$Stock.SYM)
   stockInfoAll = unique(temp)
+  fileName <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/StockInfoAll.RData"
+  save(stockInfoAll, file = fileName)
 }
 
-indicators.updated = 0
+# Updating indicators
+if (update.Indicators == 1) { # Update indicators
+  pass <- file("~/Dropbox/Courses/R/StockModel-I/QuandlPass","r")
+  quandl_key <- readLines(pass,n=1)
+  close(pass)
+  Quandl.api_key(quandl_key)
+  indicatorTable <- Quandl.datatable("SHARADAR/SF1", paginate = TRUE, dimension = "ARQ")
+  fileName <- paste(targetPath, "indicatorTable.RData", sep="")
+  save(indicatorTable, file = fileName)
+}
+
+# Updating prices
 prices.updated = 0
-# Creating a table with the stock info that has price information only  --------------------
-stockInfo <- data.frame(Stock.SYM = character(0),
-                        Sector.Num = numeric(0),
-                        Industry.Num = numeric(0), stringsAsFactors=FALSE
-)
-# Loop over all stocks
-noStocks = dim(stockInfoAll)[1]
-sample.stockInfoAll = sample_n(stockInfoAll, noStocks)  # Randomly sample stocks to be updated
-for (i in 1:noStocks) {
-# for (i in 1:10) {
-  stock = sample.stockInfoAll[i,"Stock.SYM"]
-  if (verbose == 1) print( paste("Stock ", stock, " , loop step ", i, " out of ", noStocks)  )
-  if (update.Indicators == 1) { # Update indicators
-    Fin_Q = data.frame() # In case it does not load next command
-    fileName <- paste(targetPath, stock, "-Fin_Q.RData", sep="")
-    if ( class(try(load(file = fileName), silent = TRUE)) != "try-error" ) load(fileName)  # loads existing Fin_Q
-    if ( class(try( FinStock <- getFinancials(stock, auto.assign = FALSE), silent = TRUE )) != "try-error" ) { # loads new information
-      # Income statement
-      FinIS = as.data.frame( t(viewFin(FinStock, period = 'Q', "IS")) )
-      FinIS$date = rownames(FinIS)
-      # Balance sheet
-      FinBS = as.data.frame( t(viewFin(FinStock, period = 'Q', "BS")) )
-      FinBS$date = rownames(FinBS)
-      # Cash flow
-      FinCF = as.data.frame( t(viewFin(FinStock, period = 'Q', "CF")) )
-      FinCF$date = rownames(FinCF)
-      
-      temp1 = FinIS %>% full_join(FinBS, by = "date") %>% full_join(FinCF, by = "date")
-      temp2 = Fin_Q
-      # Removing rows with dates that already have been written (outdated)
-      if ( dim(Fin_Q)[1] > 0  ) {
-        for ( k in 1:dim(Fin_Q)[1] ) {
-          if ( Fin_Q$date[k] %in% temp1$date ) temp2 = temp2[-(temp2$date == Fin_Q$date[k]),]
-        }
-        indicators.updated = indicators.updated + 1
-        Fin_Q = bind_rows(temp1, temp2 )
-        Fin_Q = unique(Fin_Q)
-        fileName <- paste(targetPath, stock, "-Fin_Q.RData", sep="")
-        save(Fin_Q, file = fileName)
-        if (stock %in% status$stock) { status[status$stock == stock, 4] = Sys.Date() }
-        else {  status = rbind( status, data.frame(stock, dim(Fin_Q)[1], dim(Fin_Q)[2], Sys.Date()) ) }
-      }
-    }
-  }
-  if (update.Prices == 1) { # Update stock prices 
+if (update.Prices == 1) { 
+  # Creating a table with the stock info that has price information only  --------------------
+  stockInfo <- data.frame(Stock.SYM = character(0),
+                          Sector.Num = numeric(0),
+                          Industry.Num = numeric(0), stringsAsFactors=FALSE
+  )
+  # Loop over all stocks
+  noStocks = dim(stockInfoAll)[1]
+  sample.stockInfoAll = sample_n(stockInfoAll, noStocks)  # Randomly sample stocks to be updated
+  for (i in 1:noStocks) {
+    # for (i in 1:10) {
+    stock = sample.stockInfoAll[i,"Stock.SYM"]
+    if (verbose == 1) print( paste("Stock ", stock, " , loop step ", i, " out of ", noStocks)  )
     if ( class( try( SYMB_prices <- get.hist.quote(instrument=stock, quote=c("Open", "High", "Low", "Close"), provider="yahoo", compression="d", retclass="zoo", quiet=TRUE), 
                      silent = TRUE) ) != "try-error" ) {
       prices.updated = prices.updated + 1
@@ -145,24 +124,19 @@ for (i in 1:noStocks) {
       }
     }
   }
-}
-
-fileName <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/StockInfoAll.RData"
-save(stockInfoAll, file = fileName)
-
-if (update.Prices == 1) { # Update stock prices 
-  fileName <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/StockInfo.RData"
+  fileName <- paste(targetPath, "StockInfo.RData", sep="")
   save(stockInfo, file = fileName)
 }
-
-fileName <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/status.RData"
-save(status, file = fileName)
 
 # Updating table
 if (update.Table == 1) {  
 
   # Loop over 1...6 months ago
   for (i in seq(1,6,1)) {
+    
+    # Load indicatorTable
+    fileName2 <- paste(targetPath, "indicatorTable.RData", sep="")
+    load(file = fileName2)
     
     # Table today ----- 
     end.date.model = Sys.Date()                        # Today
@@ -200,6 +174,7 @@ if (update.Table == 1) {
   }
 }
 
+# Updating model
 if (update.Model == 1) {  
   # Loading the most recent indicator table table.model
   targetPath <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/"
@@ -256,8 +231,6 @@ if (update.Model == 1) {
   
 if (verbose == 1) {
   print( paste( "dim(stockInfoAll) ", dim(stockInfoAll) )  )
-  print( paste( "dim(status) ", dim(status) )  )
-  print( paste( "Indicators updated = ", indicators.updated )  )
   print( paste( "Prices updated = ", prices.updated )  )
   if (update.Table == 1) { print( paste( "Table items  = ", dim(table.model)[1] )  ) }
   else { print("no table created") }
