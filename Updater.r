@@ -47,47 +47,11 @@ suppressPackageStartupMessages(library(lubridate))
 suppressPackageStartupMessages(library(caret))
 suppressPackageStartupMessages(library(gbm))
 suppressPackageStartupMessages(library(Quandl))
+suppressPackageStartupMessages(library(jsonlite))
 
 registerDoParallel(cores = 4)
 
 targetPath = "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
-
-# Loading list of stocks into stockInfoAll 
-fileName <- paste(targetPath, "StockInfoAll.RData", sep="")
-load(file = fileName)
-
-# Updating list of stocks
-if (update.Stocks == 1) {
-  temp = stockInfoAll
-  # Loading additional functions
-  source('~/Dropbox/Courses/R/StockModel-2/SymbolBySector.R')
-  
-  fileName <- paste("~/Dropbox/Courses/R/StockModel-2/", "SectorIndustryInfo.RData", sep="")
-  load(fileName)  # loads listAll: all sector and industries
-  # Creating a table with the stock info  --------------------
-  stockInfoAll <- data.frame(Stock.SYM = character(0),
-                             Sector.Num = numeric(0),
-                             Industry.Num = numeric(0), stringsAsFactors=FALSE
-  )
-  for (j in 1:length(listAll[,1])) {
-    print(j)
-    # Selecting stocks of this sector-industry
-    if (class(try( stock <- industry.All.companies(listAll[j,4]), silent = TRUE)) != "try-error" ) {
-      if (verbose == 1) print(paste("Industry number ", j, ", No. companies = ", length(stock) ))
-      if (length(stock) > 0) {
-        for (i in 1:length(stock)) {
-          stockInfoAll[nrow(stockInfoAll) + 1, ] <- c(stock[i], listAll[j,2], listAll[j,4])
-        }
-      }
-    }
-  }
-  temp = rbind(temp, stockInfoAll)
-  temp$Stock.SYM = toupper(temp$Stock.SYM)
-  #stockInfoAll = unique(temp)
-  stockInfoAll = temp[ !duplicated(temp['Stock.SYM']), ]
-  fileName <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/StockInfoAll.RData"
-  save(stockInfoAll, file = fileName)
-}
 
 # Updating indicators
 if (update.Indicators == 1) { # Update indicators
@@ -100,13 +64,30 @@ if (update.Indicators == 1) { # Update indicators
   save(indicatorTable, file = fileName)
 }
 
+# Updating list of stocks
+if (update.Stocks == 1) {
+  # Loading additional functions
+  source('~/Dropbox/Courses/R/StockModel-2/SymbolBySector.R')
+  stockInfoAll = obtainStockInfoAll()
+  fileName <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/StockInfoAll.RData"
+  save(stockInfoAll, file = fileName)
+} else{
+  # Loading list of stocks into stockInfoAll 
+  fileName <- paste(targetPath, "StockInfoAll.RData", sep="")
+  load(file = fileName)
+}
+
 # Updating prices
 prices.updated = 0
 if (update.Prices == 1) { 
   # Creating a table with the stock info that has price information only  --------------------
   stockInfo <- data.frame(Stock.SYM = character(0),
-                          Sector.Num = numeric(0),
-                          Industry.Num = numeric(0), stringsAsFactors=FALSE
+                          Sector = character(0),
+                          Industry = character(0), 
+                          Website = character(0),
+                          Summary = character(0), 
+                          Name = character(0),
+                          stringsAsFactors=FALSE
   )
   # Loop over all stocks
   noStocks = dim(stockInfoAll)[1]
