@@ -25,13 +25,13 @@ add.histo.to.table <- function(table, histo.date.model) {
   table$cash.histo =        NA
   table$equityAssets.liability.histo = NA
   
-  targetPath <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/"
+  targetPath <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
   
   for (i in 1:dim(table)[[1]]) {
     
-    # print(i)
+    #print(i)
     stock <- table[i,1]
-    # print(stock)
+    #print(stock)
     
     # Loading historical stock price data into SYMB_prices
     fileName1 <- paste(targetPath, stock, "-prices.RData", sep="")
@@ -39,7 +39,7 @@ add.histo.to.table <- function(table, histo.date.model) {
     Fin_Q = indicatorTable[indicatorTable$ticker == stock,]
     
     if ( class(try(load(file = fileName1), silent = TRUE)) != "try-error" &
-         dim(Fin_Q)[1] != 0 ) {
+         dim(Fin_Q)[1] != 0 & index(SYMB_prices)[1] < histo.date.model ) {
       
       # Closest date earlier than histo.date.model
       temp = SYMB_prices[index(SYMB_prices) < histo.date.model,]

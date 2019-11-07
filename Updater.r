@@ -45,11 +45,12 @@ suppressPackageStartupMessages(library(doParallel))
 suppressPackageStartupMessages(library(TTR))
 suppressPackageStartupMessages(library(lubridate))
 suppressPackageStartupMessages(library(caret))
+suppressPackageStartupMessages(library(gbm))
 suppressPackageStartupMessages(library(Quandl))
 
 registerDoParallel(cores = 4)
 
-targetPath = "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/"
+targetPath = "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
 
 # Loading list of stocks into stockInfoAll 
 fileName <- paste(targetPath, "StockInfoAll.RData", sep="")
@@ -59,9 +60,9 @@ load(file = fileName)
 if (update.Stocks == 1) {
   temp = stockInfoAll
   # Loading additional functions
-  source('~/Dropbox/Courses/R/StockModel-I/SymbolBySector.R')
+  source('~/Dropbox/Courses/R/StockModel-2/SymbolBySector.R')
   
-  fileName <- paste("~/Dropbox/Courses/R/StockModel-I/", "SectorIndustryInfo.RData", sep="")
+  fileName <- paste("~/Dropbox/Courses/R/StockModel-2/", "SectorIndustryInfo.RData", sep="")
   load(fileName)  # loads listAll: all sector and industries
   # Creating a table with the stock info  --------------------
   stockInfoAll <- data.frame(Stock.SYM = character(0),
@@ -82,14 +83,15 @@ if (update.Stocks == 1) {
   }
   temp = rbind(temp, stockInfoAll)
   temp$Stock.SYM = toupper(temp$Stock.SYM)
-  stockInfoAll = unique(temp)
-  fileName <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/StockInfoAll.RData"
+  #stockInfoAll = unique(temp)
+  stockInfoAll = temp[ !duplicated(temp['Stock.SYM']), ]
+  fileName <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/StockInfoAll.RData"
   save(stockInfoAll, file = fileName)
 }
 
 # Updating indicators
 if (update.Indicators == 1) { # Update indicators
-  pass <- file("~/Dropbox/Courses/R/StockModel-I/QuandlPass","r")
+  pass <- file("~/Dropbox/Courses/R/StockModel-2/QuandlPass","r")
   quandl_key <- readLines(pass,n=1)
   close(pass)
   Quandl.api_key(quandl_key)
@@ -128,39 +130,45 @@ if (update.Prices == 1) {
   save(stockInfo, file = fileName)
 }
 
+# TEMP ------------------------------
+# Replace Sys.Date() with sysDate
+
+for (sysDate in seq(as.Date("2019-11-06"), as.Date("2019-11-06"), by="days")) {
+  sysDate = as.Date(sysDate)
+
 # Updating table
 if (update.Table == 1) {  
 
   # Loop over 1...6 months ago
-  for (i in seq(1,6,1)) {
+  for (i in c(5,10,30)) {
     
     # Load indicatorTable
     fileName2 <- paste(targetPath, "indicatorTable.RData", sep="")
     load(file = fileName2)
     
     # Table today ----- 
-    end.date.model = Sys.Date()                        # Today
+    end.date.model = sysDate                        # Today
     ini.date.model = end.date.model %m-% months(6)     # 6 months before to start modeling
     histo.date.model = end.date.model - years(1)       # Model is compared to historical info (1 year earlier)
-    apply.date.model = end.date.model %m+% months(i)   # months ahead
+    apply.date.model = end.date.model + days(i)   # months ahead
     # Prepare table with stock info
-    source('~/Dropbox/Courses/R/StockModel-I/PrepareTable.R')          # source prepare table
+    source('~/Dropbox/Courses/R/StockModel-2/PrepareTable.R')          # source prepare table
     table.model <- prepare.table(stockInfoAll, end.date.model, ini.date.model, apply.date.model)
     # Removing stocks that may have problems
     table.model <- table.model[table.model$Price.Model.end > 0.01 & table.model$Price.Min > 0.01,]
     # Adding to table valuations compared to peers
-    source('~/Dropbox/Courses/R/StockModel-I/PrepareTableSector.R')    # source prepare.table.sector function
+    source('~/Dropbox/Courses/R/StockModel-2/PrepareTableSector.R')    # source prepare.table.sector function
     table.model <- prepare.table.sector(table.model) 
     # Adding historical financial status comparison
-    source('~/Dropbox/Courses/R/StockModel-I/StockInfoHistorical.R')   # source add.histo.to.table function
+    source('~/Dropbox/Courses/R/StockModel-2/StockInfoHistorical.R')   # source add.histo.to.table function
     table.model <- add.histo.to.table(table.model, histo.date.model)
     # Saving table.model
-    save(table.model, file = paste(targetPath, as.character(Sys.Date()), "+", i, "m.Rdata", sep = ""))
+    save(table.model, file = paste(targetPath, as.character(sysDate), "+", i, "d.Rdata", sep = ""))
     
-    end.date.model = Sys.Date() %m-% months(i)         # model run today - i months
+    end.date.model = sysDate - days(i)              # model run today - i months
     ini.date.model = end.date.model %m-% months(6)     # 6 months before to start modeling
     histo.date.model = end.date.model - years(1)       # Model is compared to historical info (1 year earlier)
-    apply.date.model = Sys.Date()                      # Today
+    apply.date.model = sysDate                      # Today
     # Prepare table with stock info
     table.model <- prepare.table(stockInfoAll, end.date.model, ini.date.model, apply.date.model)
     # Removing stocks that may have problems
@@ -170,21 +178,21 @@ if (update.Table == 1) {
     # Adding historical financial status comparison
     table.model <- add.histo.to.table(table.model, histo.date.model)
     # Saving table.model
-    save(table.model, file = paste(targetPath, as.character(Sys.Date()), "-", i, "m.Rdata", sep = ""))
+    save(table.model, file = paste(targetPath, as.character(sysDate), "-", i, "d.Rdata", sep = ""))
   }
 }
 
 # Updating model
 if (update.Model == 1) {  
   # Loading the most recent indicator table table.model
-  targetPath <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/"
-  date.today = Sys.Date()  
-  temp = list.files(targetPath, pattern = "2018*") # All the files that may contain indicator information
+  targetPath <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
+  date.today = sysDate  
+  temp = list.files(targetPath, pattern = "2019-*") # All the files that may contain indicator information
   diffDate = 20   # Obtain the most recent date less than 20 days
   for (i in 1:length(temp) ) {
     if( length(strsplit(temp[i],"")[[1]])==19 ) { # Correct filename length 
       tempDate = as.Date(substr(temp[i],1,10)) # Extract date file was created
-      if (date.today - tempDate < diffDate) { # Obtain the most recent date less than 20 days
+      if (date.today - tempDate < diffDate & date.today - tempDate >= 0) { # Obtain the most recent date less than 20 days
         diffDate = date.today - tempDate 
         date.file = tempDate     
       }
@@ -192,19 +200,18 @@ if (update.Model == 1) {
   }
   
   # Sourcing prepare.model function
-  source('~/Dropbox/Courses/R/StockModel-I/PrepareStockModel.R')
+  source('~/Dropbox/Courses/R/StockModel-2/PrepareStockModel.R')
   # Creating stock model with multiple methods ----------------------
   
-  # Loop over the different models 3, 6 months
-  for (i in seq(1,6,1)) {
-    # for (i in seq(3,3,3)) {
-    
+  # Loop over the different models 5, 10, 30 days
+  for (i in c(5,10,30)) {
+
     # Open table for today's table
-    fileName <- paste(targetPath, date.file, "+", i, "m.Rdata", sep = "") 
+    fileName <- paste(targetPath, date.file, "+", i, "d.Rdata", sep = "") 
     load(file = fileName)
     table.pred = table.model
     
-    fileName <- paste(targetPath, date.file, "-", i, "m.Rdata", sep = "") 
+    fileName <- paste(targetPath, date.file, "-", i, "d.Rdata", sep = "") 
     load(file = fileName)
     
     # Dividing table into training and test data  ---------------------
@@ -218,16 +225,19 @@ if (update.Model == 1) {
     my_val$gbm_pred <- predict(model_gbm, my_val)
     model_glmnet <- prepare.model(my_train, "glmnet")    # Model glmnet
     my_val$glmnet_pred <- predict(model_glmnet, my_val)
-    save(my_val, file = paste(targetPath, date.file, "-", i, "m-validation.Rdata", sep = ""))
+    save(my_val, file = paste(targetPath, date.file, "-", i, "d-validation.Rdata", sep = ""))
+    variableImportance = list(varImp(model_ranger), varImp(model_gbm), varImp(model_glmnet))
+    save(variableImportance, file = paste(targetPath, date.file, "-", i, "d-varImp.Rdata", sep = ""))
     
     # Using created model to make predictions
     table.pred[, paste("ranger_pred_", i, sep="")] <- predict(model_ranger, table.pred)
     table.pred[, paste("gbm_pred_", i, sep="")] <- predict(model_gbm, table.pred)
     table.pred[, paste("glmnet_pred_", i, sep="")] <- predict(model_glmnet, table.pred)
-    save(table.pred, file = paste(targetPath, date.file, "+", i, "m-pred.Rdata", sep = ""))
+    save(table.pred, file = paste(targetPath, date.file, "+", i, "d-pred.Rdata", sep = ""))
   }
   
 }
+} # TEMP --------------
   
 if (verbose == 1) {
   print( paste( "dim(stockInfoAll) ", dim(stockInfoAll) )  )

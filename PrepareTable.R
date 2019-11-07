@@ -9,7 +9,7 @@ prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.
   #registerDoParallel(cl)
   
   # Sourcing add.stock.to.table function
-  source('~/Dropbox/Courses/R/StockModel-I/StockInfo.R') 
+  source('~/Dropbox/Courses/R/StockModel-2/StockInfo.R') 
   
   # Creating the table with the stock info  --------------------
   ptime <- system.time({

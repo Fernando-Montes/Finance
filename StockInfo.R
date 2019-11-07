@@ -32,7 +32,7 @@
 
 add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date.model) {
   
-  targetPath <- "~/Dropbox/Courses/R/StockModel-I/ArchiveFin/"
+  targetPath <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
   
   # Loading historical stock price data into SYMB_prices
   fileName1 <- paste(targetPath, stock, "-prices.RData", sep="")
@@ -111,6 +111,7 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
                                           Fin_Q[end.date.financial, "liabilities"] != 0, 
                                    (Fin_Q[end.date.financial, "equity"]+Fin_Q[end.date.financial, "assets"])/Fin_Q[end.date.financial, "liabilities"], NA )
       SYMB_prices <- na.approx(SYMB_prices) # in case there are NA values use interpolation
+      
       # prediction for current stock price and lower bound prediction for current stock price
       prediction.forecast <- Forecasting.ts(SYMB_prices, end.date.mod, apply.date.model)
       # Holt-Winters prediction for current stock price
@@ -185,19 +186,10 @@ add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date
 # after a number of months
 Forecasting.ts <- function(SYMB_prices, end.date.model, apply.date.model) {
   
-  # Converting to monthly data (end of month)
-  # SYMB_prices.mon <- daily2endMonth(SYMB_prices)
-  temp = SYMB_prices[endpoints(SYMB_prices, on = "months"),]
-  SYMB_prices.mon = data.frame(Date = index(temp), Open = temp$Open, High = temp$High, Low = temp$Low, Close = temp$Close)
-  SYMB_prices.mon = tail(SYMB_prices.mon, 36) # only forecasting based on last 36 months !!!!!!!!!!!
-  
-  # Find the start of the quoted prices
-  start <- c(as.numeric(format(SYMB_prices.mon[1,1], format = "%Y", tz = "", usetz = FALSE)),
-             as.numeric(format(SYMB_prices.mon[1,1], format = "%m", tz = "", usetz = FALSE)))
-  # Find the end of the quoted prices
-  end <- c(as.numeric(format(end.date.model, format = "%Y", tz = "", usetz = FALSE)),
-           as.numeric(format(end.date.model, format = "%m", tz = "", usetz = FALSE)))
-  SYMB.ts <- ts(SYMB_prices.mon$Close, start = start, end = end, frequency = 12)
+  temp = SYMB_prices[index(SYMB_prices) < end.date.model,]
+  SYMB_prices.mod = data.frame(Date = index(temp), Open = temp$Open, High = temp$High, Low = temp$Low, Close = temp$Close)
+  SYMB_prices.mod = tail(SYMB_prices.mod, 365) # only forecasting based on last year !!!!!!!!!!!
+  SYMB.ts <- ts(SYMB_prices.mod$Close, frequency = 7)
   
   # Do the Holt-Winters model with mult season option if it can
   SYMB.hw <- if (class(try(HoltWinters(SYMB.ts, seasonal = "mult"), silent = TRUE)) != "try-error") {
@@ -209,7 +201,7 @@ Forecasting.ts <- function(SYMB_prices, end.date.model, apply.date.model) {
   }
   
   # Number of time steps ahead for prediction
-  n.ahead <- (length(seq(from=end.date.model, to=apply.date.model, by='month'))-1)
+  n.ahead <- (length(seq(from=end.date.model, to=apply.date.model, by='days'))-1)
   # Holt-Winters prediction
   SYMB.pred.HoWin <- forecast(SYMB.hw, h=n.ahead, level = c(90), allow.multiplicative.trend = TRUE)
   # Arima prediction
@@ -227,53 +219,23 @@ plot.Prediction <- function(stock, end.date.model, apply.date.model) {
                                 quote="Close",provider="yahoo", 
                                 compression="m", retclass="zoo", quiet=TRUE)
   
-  # Find the start of the quoted prices
-  start <- c(as.numeric(format(index(SYMB_prices)[1], format = "%Y", tz = "", usetz = FALSE)),
-             as.numeric(format(index(SYMB_prices)[1], format = "%m", tz = "", usetz = FALSE)))
-  # Find the end of the quoted prices
-  end <- c(as.numeric(format(end.date.model, format = "%Y", tz = "", usetz = FALSE)),
-           as.numeric(format(end.date.model, format = "%m", tz = "", usetz = FALSE)))
+  temp = SYMB_prices[index(SYMB_prices) < end.date.model,]
+  SYMB_prices.mod = data.frame(Date = index(temp), Open = temp$Open, High = temp$High, Low = temp$Low, Close = temp$Close)
+  SYMB_prices.mod = tail(SYMB_prices.mod, 365) # only forecasting based on last year !!!!!!!!!!!
+  SYMB.ts <- ts(SYMB_prices.mod$Close, frequency = 7)
   
-  SYMB.ts <- ts(SYMB_prices, start = start, end = end, freq=12)
-  #plot(SYMB.ts, xlab= "Time (months)", ylab = "Price")
   # Do the Holt-Winters model with mult season option if it can
   SYMB.hw <- if (class(try(HoltWinters(SYMB.ts, seasonal = "mult"), silent = TRUE)) != "try-error") {
     HoltWinters(SYMB.ts, seasonal = "mult")
   } else {
     HoltWinters(SYMB.ts, seasonal = "add")
   }
-  #SYMB.hw 
-  #SYMB.hw$coef 
-  #SYMB.hw$SSE
-  #plot (SYMB.hw$fitted)
-  #plot (SYMB.hw)
   
   # Prediction into the future !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  SYMB.predict <- predict(SYMB.hw, n.ahead = (length(seq(from=end.date.model, to=apply.date.model, by='month'))-1),
+  SYMB.predict <- predict(SYMB.hw, n.ahead = (length(seq(from=end.date.model, to=apply.date.model, by='days'))-1),
                           level = 0.9, prediction.interval = TRUE)
-  SYMB.ts <- ts(SYMB_prices, start = start, freq=12)
   ts.plot(SYMB.ts, as.ts(SYMB.hw$fitted[,1]), SYMB.predict, lty = c(1,2,3,3,3)
-          , xlab= "Time (months)", ylab = paste("Price", stock))
+          , xlab= "Time (7 days)", ylab = paste("Price", stock))
 }
 
-# Obsolete!!!!!!!! -----
-# Function that takes a time series with daily data and returns a data frame including the last day of every month data
-daily2endMonth <- function(daily.series) {
-  
-  # Data frame with date and numeric fields
-  month.series <- data.frame(Date = numeric(0), Close = numeric(0))
-  i <- 1
-  while(i <= length(daily.series)) {
-    # Obtaining for 1 month by subsetting
-    month.data <- daily.series[as.numeric(format(index(daily.series[i]), format = "%Y")) == as.numeric(format(index(daily.series), format = "%Y"))
-                             & as.numeric(format(index(daily.series[i]), format = "%m")) == as.numeric(format(index(daily.series), format = "%m")),]
-    # Only add the last day of the month
-    month.series[nrow(month.series) + 1, 2] <- tail(month.data,1)
-    month.series[nrow(month.series), 1] <- index(tail(month.data,1))
-    
-    i <- i + length(month.data)
-  }
-  month.series$Date <- as.Date(month.series$Date)
-  return(month.series)
-}
 
