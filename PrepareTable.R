@@ -5,9 +5,6 @@
 
 prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.model) {
   
-  #cl <- makeCluster(4, outfile="")
-  #registerDoParallel(cl)
-  
   # Sourcing add.stock.to.table function
   source('~/Dropbox/Courses/R/StockModel-2/StockInfo.R') 
   
@@ -50,10 +47,6 @@ prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.
   })[3]
   print(ptime)
   table <- na.exclude(table)
-  # Code to save table
-  # saveRDS(table, file="~/Dropbox/Courses/R/Finance/ServicesSector.Rda")
-  # Code to read it back
-  # table <- readRDS(file="~/Dropbox/Courses/R/Finance/ServicesSector.Rda")
   
   table$Price.Model.end.low.ratio = as.numeric(table$Price.Model.end)/as.numeric(table$Price.Min)
   table$Price.Model.end.high.ratio = as.numeric(table$Price.Model.end)/as.numeric(table$Price.Max)
@@ -65,6 +58,5 @@ prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.
   table$Price.sma.50 =  100.0*as.numeric(table$Price.Model.end)/as.numeric(table$sma.50)
   table$Price.Category = as.factor(table$Price.Category)
   table$SectorIndustry.Num = as.factor(table$SectorIndustry.Num)
-  #stopCluster(cl)
   return(table) 
 }

@@ -114,7 +114,7 @@ if (update.Prices == 1) {
 # TEMP ------------------------------
 # Replace Sys.Date() with sysDate
 
-for (sysDate in seq(as.Date("2019-11-06"), as.Date("2019-11-06"), by="days")) {
+for (sysDate in seq(as.Date("2019-11-07"), as.Date("2019-11-07"), by="days")) {
   sysDate = as.Date(sysDate)
 
 # Updating table
