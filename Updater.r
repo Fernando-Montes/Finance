@@ -51,11 +51,12 @@ suppressPackageStartupMessages(library(jsonlite))
 
 registerDoParallel(cores = 4)
 
-targetPath = "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
+targetPatS = "~/Dropbox/Courses/R/StockModel-2/"
+targetPath = paste(targetPatS, "ArchiveFin/", sep = "")
 
 # Updating indicators
 if (update.Indicators == 1) { # Update indicators
-  pass <- file("~/Dropbox/Courses/R/StockModel-2/QuandlPass","r")
+  pass <- file(paste(targetPatS, "QuandlPass", sep = ""),"r")
   quandl_key <- readLines(pass,n=1)
   close(pass)
   Quandl.api_key(quandl_key)
@@ -67,9 +68,9 @@ if (update.Indicators == 1) { # Update indicators
 # Updating list of stocks
 if (update.Stocks == 1) {
   # Loading additional functions
-  source('~/Dropbox/Courses/R/StockModel-2/SymbolBySector.R')
+  source(paste(targetPatS, "SymbolBySector.R", sep = ""))
   stockInfoAll = obtainStockInfoAll()
-  fileName <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/StockInfoAll.RData"
+  fileName <- paste(targetPath, "StockInfoAll.RData", sep = "")
   save(stockInfoAll, file = fileName)
 } else{
   # Loading list of stocks into stockInfoAll 
@@ -92,26 +93,31 @@ if (update.Prices == 1) {
   
   # Loop over all stocks
   noStocks = dim(stockInfoAll)[1]
+  # Loading additional functions
+  source(paste(targetPatS, "SymbolBySector.R", sep = ""))
   keys = ameritradeKeys()
   clientID = keys[[1]]
   token = keys[[2]]
-  #for (i in 1:noStocks) {
-  for (i in 1:2) {
-    if (i %% 200 == 0) { # Refresh keys
+  for (i in 1:noStocks) {
+    Sys.sleep(0.5) # Ameritrade limits requests to 120 per minute
+    if (i %% 500 == 0) { # Refresh keys
       keys = ameritradeKeys()
       clientID = keys[[1]]
       token = keys[[2]]
     }
     stock = stockInfoAll[i,"Stock.SYM"]
-    if (verbose == 1) {
-      print(i)
-      print(stock)
+    if (verbose == 1) print( paste("i = ", i, " stock: ", stock, sep = "") )
+    if (class(try( SYMB_prices <- ameritradePriceInfo(stock, clientID, token), silent = TRUE)) != "try-error") {
+      fileName <- paste(targetPath, stock, "-prices.RData", sep="")
+      save(SYMB_prices, file = fileName)
+      stockInfo = rbind(stockInfo, stockInfoAll[stockInfoAll$Stock.SYM == stock,]) #Only add stocks that have been updated
+      prices.updated = prices.updated + 1
     }
-    SYMB_prices = ameritradePriceInfo(stock, clientID, token)
-    fileName <- paste(targetPath, stock, "-prices.RData", sep="")
-    save(SYMB_prices, file = fileName)
-    stockInfo = rbind(stockInfo, stockInfoAll[stockInfoAll$Stock.SYM == stock,]) #Only add stocks that have been updated
-    prices.updated = prices.updated + 1
+    else {
+      print("Problem with the download")
+    }
+    
+    
   }
   fileName <- paste(targetPath, "StockInfo.RData", sep="")
   save(stockInfo, file = fileName)
@@ -139,15 +145,15 @@ if (update.Table == 1) {
     histo.date.model = end.date.model - years(1)    # Model is compared to historical info (1 year earlier)
     apply.date.model = end.date.model + days(i)     # days ahead
     # Prepare table with stock info
-    source('~/Dropbox/Courses/R/StockModel-2/PrepareTable.R')          # source prepare table
+    source(paste(targetPatS, "PrepareTable.R", sep = ""))          # source prepare table
     table.model <- prepare.table(stockInfoAll, end.date.model, ini.date.model, apply.date.model)
     # Removing stocks that may have problems
     table.model <- table.model[table.model$Price.Model.end > 0.01 & table.model$Price.Min > 0.01,]
     # Adding to table valuations compared to peers
-    source('~/Dropbox/Courses/R/StockModel-2/PrepareTableSector.R')    # source prepare.table.sector function
+    source(paste(targetPatS, "PrepareTableSector.R", sep = ""))    # source prepare.table.sector function
     table.model <- prepare.table.sector(table.model) 
     # Adding historical financial status comparison
-    source('~/Dropbox/Courses/R/StockModel-2/StockInfoHistorical.R')   # source add.histo.to.table function
+    source(paste(targetPatS, "StockInfoHistorical.R", sep = ""))   # source add.histo.to.table function
     table.model <- add.histo.to.table(table.model, histo.date.model)
     # Saving table.model
     save(table.model, file = paste(targetPath, as.character(sysDate), "+", i, "d.Rdata", sep = ""))
@@ -172,7 +178,6 @@ if (update.Table == 1) {
 # Updating model
 if (update.Model == 1) {  
   # Loading the most recent indicator table table.model
-  targetPath <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
   date.today = sysDate  
   temp = list.files(targetPath, pattern = "2019-*") # All the files that may contain indicator information
   diffDate = 20   # Obtain the most recent date less than 20 days
@@ -187,7 +192,7 @@ if (update.Model == 1) {
   }
   
   # Sourcing prepare.model function
-  source('~/Dropbox/Courses/R/StockModel-2/PrepareStockModel.R')
+  source(paste(targetPatS, "PrepareStockModel.R", sep = ""))
   # Creating stock model with multiple methods ----------------------
   
   # Loop over the different models 5, 10, 30 days

@@ -25,8 +25,6 @@ add.histo.to.table <- function(table, histo.date.model) {
   table$cash.histo =        NA
   table$equityAssets.liability.histo = NA
   
-  targetPath <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
-  
   for (i in 1:dim(table)[[1]]) {
     
     #print(i)

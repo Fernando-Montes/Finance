@@ -36,12 +36,11 @@ obtainStockInfoAll <- function() {
                              stringsAsFactors=FALSE
   )
   listStocks = obtainStockSYM()   # Obtains list of stocks with quaterly data
-  pass <- file("~/Dropbox/Courses/R/StockModel-2/clientID.pem","r")
+  pass <- file(paste(targetPatS, "clientID.pem", sep = ""),"r")
   key <- readLines(pass, n=1)
   close(pass)
   for (i in 1:length(listStocks)) {
-    print(i)
-    print(listStocks[i])
+    print( paste("i = ", i, " stock: ", listStocks[i], sep = "") )
     if (class(try( tmp <- obtainStockInfo(listStocks[i], key), silent = TRUE)) != "try-error") {
       stockInfoAll[nrow(stockInfoAll) + 1, ] = tmp
     }
@@ -51,10 +50,10 @@ obtainStockInfoAll <- function() {
 
 # Returns ameritrade keys
 ameritradeKeys <- function() {
-  pass <- file("~/Dropbox/Courses/R/StockModel-2/clientID.pem","r")
+  pass <- file(paste(targetPatS, "clientID.pem", sep = ""),"r")
   clientID <- readLines(pass, n=1) 
   close(pass)
-  pass <- file("~/Dropbox/Courses/R/StockModel-2/refreshToken.pem","r")
+  pass <- file(paste(targetPatS, "refreshToken.pem", sep = ""),"r")
   refreshToken <- readLines(pass, n=1)
   close(pass)
   data = list("grant_type" = "refresh_token", 'refresh_token' = refreshToken, 
@@ -73,8 +72,10 @@ ameritradePriceInfo <- function(stock, clientID, token) {
   url = paste('https://api.tdameritrade.com/v1/marketdata/', stock, '/pricehistory?apikey=', clientID,
               '&periodType=', periodType, '&period=', period, '&frequencyType=daily&frequency=1', sep="") 
   req <- httr::GET(url, httr::add_headers(Authorization = token))
+  #print(req)
   json <- httr::content(req, as = "text")
   tmp = fromJSON(json)$candles
+  #print(tmp)
   framedates = as.Date(as.POSIXct(tmp[,6]/1000, origin = "1970-01-01", tz = 'UTC'), format = "%m-%d-%Y")
   SYMB_prices = zoo(tmp[,1:4], order.by = framedates)
   colnames(SYMB_prices) = c("Open", "High", "Low", "Close")

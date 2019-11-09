@@ -32,8 +32,6 @@
 
 add.stock.to.table <- function(stock, end.date.model, ini.date.model, apply.date.model) {
   
-  targetPath <- "~/Dropbox/Courses/R/StockModel-2/ArchiveFin/"
-  
   # Loading historical stock price data into SYMB_prices
   fileName1 <- paste(targetPath, stock, "-prices.RData", sep="")
   # Selecting only financial data of the stock

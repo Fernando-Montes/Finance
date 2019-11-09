@@ -6,7 +6,7 @@
 prepare.table <- function(stockInfo, end.date.model, ini.date.model, apply.date.model) {
   
   # Sourcing add.stock.to.table function
-  source('~/Dropbox/Courses/R/StockModel-2/StockInfo.R') 
+  source(paste(targetPatS, "StockInfo.R", sep = "")) 
   
   # Creating the table with the stock info  --------------------
   ptime <- system.time({
