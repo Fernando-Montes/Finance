@@ -89,23 +89,29 @@ if (update.Prices == 1) {
                           Name = character(0),
                           stringsAsFactors=FALSE
   )
+  
   # Loop over all stocks
   noStocks = dim(stockInfoAll)[1]
-  sample.stockInfoAll = sample_n(stockInfoAll, noStocks)  # Randomly sample stocks to be updated
-  for (i in 1:noStocks) {
-    # for (i in 1:10) {
-    stock = sample.stockInfoAll[i,"Stock.SYM"]
-    if (verbose == 1) print( paste("Stock ", stock, " , loop step ", i, " out of ", noStocks)  )
-    if ( class( try( SYMB_prices <- get.hist.quote(instrument=stock, quote=c("Open", "High", "Low", "Close"), provider="yahoo", compression="d", retclass="zoo", quiet=TRUE), 
-                     silent = TRUE) ) != "try-error" ) {
-      prices.updated = prices.updated + 1
-      if ( dim(SYMB_prices)[1]>10 ) {
-        # Code to write info
-        fileName <- paste(targetPath, stock, "-prices.RData", sep="")
-        save(SYMB_prices, file = fileName)
-        stockInfo = rbind(stockInfo, sample.stockInfoAll[i,])
-      }
+  keys = ameritradeKeys()
+  clientID = keys[[1]]
+  token = keys[[2]]
+  #for (i in 1:noStocks) {
+  for (i in 1:2) {
+    if (i %% 200 == 0) { # Refresh keys
+      keys = ameritradeKeys()
+      clientID = keys[[1]]
+      token = keys[[2]]
     }
+    stock = stockInfoAll[i,"Stock.SYM"]
+    if (verbose == 1) {
+      print(i)
+      print(stock)
+    }
+    SYMB_prices = ameritradePriceInfo(stock, clientID, token)
+    fileName <- paste(targetPath, stock, "-prices.RData", sep="")
+    save(SYMB_prices, file = fileName)
+    stockInfo = rbind(stockInfo, stockInfoAll[stockInfoAll$Stock.SYM == stock,]) #Only add stocks that have been updated
+    prices.updated = prices.updated + 1
   }
   fileName <- paste(targetPath, "StockInfo.RData", sep="")
   save(stockInfo, file = fileName)
@@ -114,7 +120,7 @@ if (update.Prices == 1) {
 # TEMP ------------------------------
 # Replace Sys.Date() with sysDate
 
-for (sysDate in seq(as.Date("2019-11-07"), as.Date("2019-11-07"), by="days")) {
+for (sysDate in seq(as.Date("2019-11-08"), as.Date("2019-11-08"), by="days")) {
   sysDate = as.Date(sysDate)
 
 # Updating table
@@ -129,9 +135,9 @@ if (update.Table == 1) {
     
     # Table today ----- 
     end.date.model = sysDate                        # Today
-    ini.date.model = end.date.model %m-% months(6)     # 6 months before to start modeling
-    histo.date.model = end.date.model - years(1)       # Model is compared to historical info (1 year earlier)
-    apply.date.model = end.date.model + days(i)   # months ahead
+    ini.date.model = end.date.model %m-% months(6)  # 6 months before to start modeling
+    histo.date.model = end.date.model - years(1)    # Model is compared to historical info (1 year earlier)
+    apply.date.model = end.date.model + days(i)     # days ahead
     # Prepare table with stock info
     source('~/Dropbox/Courses/R/StockModel-2/PrepareTable.R')          # source prepare table
     table.model <- prepare.table(stockInfoAll, end.date.model, ini.date.model, apply.date.model)
